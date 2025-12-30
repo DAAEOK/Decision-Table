@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>결정식탁 (Decision Table) | PM Portfolio</title>
+    <meta
+      name="description"
+      content="결정식탁 - 식사 선택의 피로를 해결하는 상태 기반 의사결정 추천 서비스 | PM 케이스 스터디 포트폴리오"
+    />
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --surface: #f6f7f9;
+        --surface-2: #eef1f5;
+        --text: #111827;
+        --muted: #4b5563;
+        --muted-2: #6b7280;
+        --border: #e5e7eb;
+        --accent: #111827;
+        --accent-2: #2563eb;
+        --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+        --shadow-2: 0 14px 40px rgba(17, 24, 39, 0.12);
+        --radius: 16px;
+        --radius-lg: 22px;
+        --max: 1120px;
+        --nav-h: 64px;
+
+        --good: #16a34a;
+        --warn: #f59e0b;
+        --bad: #ef4444;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Noto Sans KR",
+          sans-serif;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
+      a {
+        color: inherit;
+      }
+
+      /* ===== Layout ===== */
+      .container {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      section {
+        padding: 88px 0;
+      }
+
+      /* ===== Section Head ===== */
+      .section-head {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 28px;
+      }
+      .section-kicker {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted-2);
+      }
+      .section-title {
+        font-size: clamp(26px, 3vw, 40px);
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      .section-subtitle {
+        color: var(--muted);
+        max-width: 820px;
+        font-size: 16px;
+      }
+
+      /* ===== Nav ===== */
+      nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+        z-index: 1000;
+      }
+      nav .nav-inner {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 14px 24px;
+        height: var(--nav-h);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+      .brand-badge {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        background: var(--text);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 14px;
+      }
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      nav a {
+        text-decoration: none;
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 13px;
+        padding: 10px 10px;
+        border-radius: 999px;
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+      }
+      nav a:hover {
+        color: var(--text);
+        background: rgba(17, 24, 39, 0.06);
+      }
+
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        background: var(--text);
+        color: #fff !important;
+        border-radius: 999px;
+        box-shadow: 0 8px 18px rgba(17, 24, 39, 0.15);
+      }
+      .nav-cta:hover {
+        background: #0b1220;
+        transform: translateY(-1px);
+      }
+
+      /* Mobile menu button */
+      .menu-btn {
+        display: none;
+        border: 1px solid var(--border);
+        background: #fff;
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 13px;
+        color: var(--text);
+        cursor: pointer;
+      }
+      .menu-btn:active {
+        transform: translateY(1px);
+      }
+
+      /* Mobile drawer */
+      .drawer {
+        display: none;
+        border-top: 1px solid rgba(229, 231, 235, 0.8);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+      }
+      .drawer.open {
+        display: block;
+      }
+      .drawer .drawer-inner {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 12px 24px 18px;
+        display: grid;
+        gap: 10px;
+      }
+      .drawer a {
+        display: inline-flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        background: #fff;
+        font-weight: 800;
+        color: var(--text);
+      }
+      .drawer a span {
+        color: var(--muted-2);
+        font-weight: 800;
+        font-size: 12px;
+      }
+
+      /* ===== Hero ===== */
+      .hero {
+        padding-top: calc(var(--nav-h) + 46px);
+        padding-bottom: 64px;
+      }
+      .hero-wrap {
+        background: radial-gradient(
+            1200px 600px at 10% 0%,
+            rgba(37, 99, 235, 0.08),
+            transparent 60%
+          ),
+          radial-gradient(
+            1000px 500px at 90% 20%,
+            rgba(17, 24, 39, 0.07),
+            transparent 60%
+          );
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: clamp(28px, 4vw, 56px);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 28px;
+        align-items: start;
+      }
+      .hero h1 {
+        font-size: clamp(34px, 4vw, 56px);
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        margin-bottom: 10px;
+      }
+      .hero .tagline {
+        font-size: 18px;
+        color: var(--muted);
+        max-width: 720px;
+        margin-bottom: 16px;
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 12px 0 0;
+      }
+      .badge {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid rgba(17, 24, 39, 0.1);
+        box-shadow: 0 8px 18px rgba(17, 24, 39, 0.05);
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 900;
+      }
+      .badge b {
+        color: var(--text);
+        font-weight: 950;
+      }
+
+      .before-after {
+        margin: 18px 0 0;
+        padding: 16px;
+        background: rgba(37, 99, 235, 0.08);
+        border-radius: 14px;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+      }
+      .before-after-grid {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 14px;
+        align-items: center;
+        font-size: 14px;
+      }
+      .ba-title {
+        font-weight: 900;
+        margin-bottom: 4px;
+      }
+      .ba-left .ba-title {
+        color: var(--muted-2);
+      }
+      .ba-left .ba-text {
+        color: var(--muted);
+      }
+      .ba-right .ba-title {
+        color: var(--text);
+      }
+      .ba-right .ba-text {
+        color: var(--text);
+        font-weight: 800;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 18px 0 26px;
+      }
+      .chip {
+        font-size: 12px;
+        color: var(--muted);
+        background: rgba(17, 24, 39, 0.05);
+        border: 1px solid rgba(229, 231, 235, 0.85);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 900;
+        font-size: 14px;
+        border: 1px solid transparent;
+        transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s,
+          border-color 0.2s;
+        user-select: none;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--text);
+        color: #fff;
+        box-shadow: 0 10px 24px rgba(17, 24, 39, 0.18);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(17, 24, 39, 0.22);
+      }
+      .btn-ghost {
+        background: #fff;
+        color: var(--text);
+        border-color: var(--border);
+      }
+      .btn-ghost:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-card {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 12px;
+        background: var(--surface);
+        border: 1px solid rgba(229, 231, 235, 0.7);
+        border-radius: 14px;
+      }
+      .meta-row .k {
+        color: var(--muted-2);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+      }
+      .meta-row .v {
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 900;
+        text-align: right;
+      }
+
+      /* ===== Cards / Grids ===== */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, 0.06);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-2);
+      }
+      .card h3 {
+        font-size: 18px;
+        letter-spacing: -0.01em;
+        margin-bottom: 8px;
+      }
+      .card p {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .callout {
+        background: linear-gradient(
+            0deg,
+            rgba(37, 99, 235, 0.06),
+            rgba(37, 99, 235, 0.06)
+          ),
+          #fff;
+        border: 1px solid rgba(37, 99, 235, 0.22);
+        border-radius: var(--radius);
+        padding: 18px;
+        margin-top: 18px;
+      }
+      .callout p {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .callout strong {
+        color: var(--text);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: #fff;
+      }
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: var(--surface);
+        color: var(--muted-2);
+        font-weight: 950;
+        letter-spacing: 0.01em;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .table-note {
+        margin-top: 10px;
+        color: var(--muted-2);
+        font-size: 12px;
+      }
+
+      .timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 18px;
+      }
+      .step {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: #fff;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05);
+      }
+      .step .num {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: var(--text);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 950;
+        flex-shrink: 0;
+      }
+      .step h3 {
+        margin: 2px 0 6px;
+        font-size: 16px;
+      }
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      /* ===== DEMO ===== */
+      .demo-wrap {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: #fff;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .demo-head {
+        padding: 18px 18px 12px;
+        border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+        background: linear-gradient(
+            180deg,
+            rgba(37, 99, 235, 0.06),
+            rgba(255, 255, 255, 0)
+          ),
+          #fff;
+      }
+      .demo-head h3 {
+        font-size: 18px;
+        letter-spacing: -0.01em;
+      }
+      .demo-head p {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .demo-body {
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      .form {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        background: var(--surface);
+      }
+      .field {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .label {
+        font-size: 12px;
+        color: var(--muted-2);
+        font-weight: 900;
+        letter-spacing: 0.01em;
+      }
+      .seg {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .seg input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .seg label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        background: #fff;
+        font-weight: 900;
+        font-size: 13px;
+        color: var(--text);
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+      }
+      .seg label:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 25px rgba(17, 24, 39, 0.08);
+      }
+      .seg input:checked + label {
+        border-color: rgba(37, 99, 235, 0.55);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.14);
+      }
+
+      .mini {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .select {
+        width: 100%;
+        border: 1px solid rgba(229, 231, 235, 0.95);
+        border-radius: 14px;
+        padding: 10px 12px;
+        font-weight: 800;
+        background: #fff;
+        color: var(--text);
+      }
+
+      .demo-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .btn-small {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+      .btn-blue {
+        background: var(--accent-2);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 12px 22px rgba(37, 99, 235, 0.2);
+      }
+      .btn-blue:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 28px rgba(37, 99, 235, 0.25);
+      }
+      .btn-soft {
+        background: #fff;
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      .result {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        background: #fff;
+      }
+      .result-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+      .pill b {
+        color: var(--text);
+      }
+      .cands {
+        display: grid;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .cand {
+        border: 1px solid rgba(229, 231, 235, 0.95);
+        border-radius: 16px;
+        padding: 12px;
+        background: #fff;
+        display: grid;
+        gap: 6px;
+      }
+      .cand-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .cand-title {
+        font-weight: 950;
+        letter-spacing: -0.01em;
+      }
+      .cand-tag {
+        font-size: 11px;
+        padding: 6px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        background: var(--surface);
+        color: var(--muted-2);
+        font-weight: 950;
+        white-space: nowrap;
+      }
+      .cand-reason {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .cand-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .btn-outline {
+        background: #fff;
+        border: 1px solid rgba(229, 231, 235, 0.95);
+        color: var(--text);
+      }
+      .btn-outline:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+      .final {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(22, 163, 74, 0.25);
+        background: rgba(22, 163, 74, 0.06);
+        display: grid;
+        gap: 6px;
+      }
+      .final h4 {
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .final .big {
+        font-size: 18px;
+        font-weight: 950;
+      }
+      .final .why {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .history {
+        margin-top: 14px;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(229, 231, 235, 0.95);
+        background: var(--surface);
+      }
+      .history-title {
+        font-size: 12px;
+        font-weight: 950;
+        color: var(--muted-2);
+        letter-spacing: 0.01em;
+      }
+      .history-list {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .hchip {
+        font-size: 12px;
+        font-weight: 900;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        color: var(--muted);
+      }
+
+      /* ===== Gallery placeholders ===== */
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+      }
+      .shot {
+        border: 1px dashed #cbd5e1;
+        border-radius: 18px;
+        background: var(--surface);
+        aspect-ratio: 9/16;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        color: var(--muted-2);
+        text-align: center;
+        font-weight: 800;
+        font-size: 12px;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .footer {
+        border-top: 1px solid var(--border);
+        background: #fff;
+        padding: 36px 0;
+        color: var(--muted);
+      }
+      .footer .foot-grid {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .links {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .link {
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 900;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #fff;
+      }
+      .link:hover {
+        border-color: #cbd5e1;
+      }
+
+      /* ===== Reveal ===== */
+      .reveal {
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+      }
+      .reveal.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ===== Responsive (Desktop-first) ===== */
+      @media (max-width: 1100px) {
+        :root {
+          --max: 980px;
+        }
+      }
+
+      @media (max-width: 980px) {
+        section {
+          padding: 72px 0;
+        }
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .gallery {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        nav ul {
+          display: none;
+        }
+        .menu-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .before-after-grid {
+          grid-template-columns: 1fr;
+        }
+        .before-after-grid > div:nth-child(2) {
+          display: none;
+        }
+        .demo-body {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .container {
+          padding: 0 16px;
+        }
+        .hero-wrap {
+          padding: 22px;
+        }
+        .gallery {
+          grid-template-columns: 1fr;
+        }
+        .btn {
+          width: 100%;
+        }
+        .hero-actions {
+          gap: 10px;
+        }
+        .mini {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Accessibility focus */
+      :focus-visible {
+        outline: 3px solid rgba(37, 99, 235, 0.35);
+        outline-offset: 3px;
+        border-radius: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAV -->
+    <nav aria-label="Primary">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="Go to top">
+          <span class="brand-badge">DT</span>
+          <span>결정식탁</span>
+        </a>
+
+        <ul aria-label="Section links">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#problem">Problem</a></li>
+          <li><a href="#strategy">Strategy</a></li>
+          <li><a href="#mvp">MVP</a></li>
+          <li><a href="#demo">Demo</a></li>
+          <li><a href="#logic">Logic</a></li>
+          <li><a href="#metrics">Metrics</a></li>
+          <li><a href="#prototype">Prototype</a></li>
+          <li><a href="#reflection">Reflection</a></li>
+        </ul>
+
+        <div class="nav-right">
+          <button
+            class="menu-btn"
+            id="menuBtn"
+            type="button"
+            aria-expanded="false"
+            aria-controls="drawer"
+          >
+            메뉴
+          </button>
+          <a class="nav-cta" href="./prototype/index.html">prototype ✦</a>
+        </div>
+      </div>
+
+      <div class="drawer" id="drawer" role="region" aria-label="Mobile menu">
+        <div class="drawer-inner">
+          <a href="#overview" class="drawer-link"
+            >Overview <span>프로젝트 개요</span></a
+          >
+          <a href="#problem" class="drawer-link"
+            >Problem <span>문제 정의</span></a
+          >
+          <a href="#strategy" class="drawer-link"
+            >Strategy <span>해결 전략</span></a
+          >
+          <a href="#mvp" class="drawer-link">MVP <span>검증 범위</span></a>
+          <a href="#demo" class="drawer-link">Demo <span>작동 데모</span></a>
+          <a href="#logic" class="drawer-link">Logic <span>추천 로직</span></a>
+          <a href="#metrics" class="drawer-link">Metrics <span>KPI</span></a>
+          <a href="#prototype" class="drawer-link"
+            >Prototype <span>화면 설계</span></a
+          >
+          <a href="#reflection" class="drawer-link"
+            >Reflection <span>회고</span></a
+          >
+          <a href="#contact" class="drawer-link">Contact <span>연락</span></a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <header id="top" class="hero">
+      <div class="container">
+        <div class="hero-wrap reveal">
+          <div class="hero-grid">
+            <div>
+              <div class="section-kicker">PM CASE STUDY · 2025</div>
+              <h1>결정식탁 (Decision Table)</h1>
+
+              <p class="tagline">
+                “오늘 뭐 먹지?”라는 반복적인 고민을<br />
+                추천 문제가 아니라 <strong>의사결정 비용 문제</strong>로
+                재정의했다.<br />
+                <strong>10초 입력 → 3개 선택지</strong> 구조로 사용자의 결정
+                부담을 낮추는 것을 목표로 했다.
+              </p>
+
+              <div class="badge-row" aria-label="Key outcomes">
+                <span class="badge"
+                  >검증 가설: <b>상태 입력이 결정 시간을 줄인다</b></span
+                >
+                <span class="badge">핵심 UX: <b>입력 10초</b></span>
+                <span class="badge">출력 제약: <b>3개 선택지</b></span>
+                <span class="badge">신뢰 장치: <b>추천 이유 1줄</b></span>
+              </div>
+
+              <div class="before-after" aria-label="Before and After">
+                <div class="before-after-grid">
+                  <div class="ba-left">
+                    <div class="ba-title">❌ Before</div>
+                    <div class="ba-text">스크롤은 길고<br />결정은 안 남</div>
+                  </div>
+                  <div style="font-size: 20px; text-align: center">→</div>
+                  <div class="ba-right">
+                    <div class="ba-title">✓ After</div>
+                    <div class="ba-text">상태만 묻고<br />선택만 남김</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chips">
+                <span class="chip">Problem Re-framing</span>
+                <span class="chip">Decision Variables</span>
+                <span class="chip">Rule-based Logic</span>
+                <span class="chip">MVP Scoping</span>
+                <span class="chip">Explainability</span>
+              </div>
+
+              <div class="hero-actions">
+                <a class="btn btn-primary" href="#demo">지금 데모 해보기</a>
+                <a class="btn btn-ghost" href="#prototype">화면 설계</a>
+              </div>
+            </div>
+
+            <aside class="hero-card">
+              <h3 style="margin-bottom: 10px">프로젝트 요약</h3>
+              <div class="meta">
+                <div class="meta-row">
+                  <div class="k">배경</div>
+                  <div class="v">아이디어 리빌드 · 2025</div>
+                </div>
+                <div class="meta-row">
+                  <div class="k">역할</div>
+                  <div class="v">서비스 기획 · 프로토타입(1인)</div>
+                </div>
+                <div class="meta-row">
+                  <div class="k">툴</div>
+                  <div class="v">Kakao Oven · Figma</div>
+                </div>
+                <div class="meta-row">
+                  <div class="k">목표</div>
+                  <div class="v">Decision Fatigue 감소</div>
+                </div>
+              </div>
+
+              <div class="callout" style="margin-top: 14px">
+                <p>
+                  <strong>핵심 통찰</strong><br />
+                  사용자가 원하는 건 “더 좋은 추천”이 아니라
+                  <strong>결정 부담을 줄여주는 구조</strong>였다.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section id="overview">
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">OVERVIEW</div>
+          <h2 class="section-title">프로젝트 개요</h2>
+          <p class="section-subtitle">
+            결정식탁은 음식 추천 서비스가 아니라, 사용자가 매번 겪는
+            <strong>‘선택 과정의 피로’를 줄이는 구조</strong>를 설계한 PM 케이스
+            스터디다. 목표는 기능을 많이 만드는 것이 아니라,
+            <strong
+              >결정이 일어나는 순간을 얼마나 단순하게 만들 수 있는지</strong
+            >를 검증하는 것이었다.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card reveal">
+            <h3>내가 만든 것</h3>
+            <p>
+              문제 재정의 → 결정 변수 정의 → MVP 스코프(포함/제외) → 룰 기반
+              추천 로직 → 플로우/IA → 측정 가능한 KPI → (포폴용) 작동 데모
+            </p>
+          </div>
+
+          <div class="card reveal">
+            <h3>핵심 가치(1문장)</h3>
+            <p>
+              “상태를 먼저 묻고, 선택지는 줄인다.”<br />
+              <strong>10초 입력</strong>으로 <strong>3개</strong> 중 하나만
+              고르게 만든다.
+            </p>
+          </div>
+
+          <div class="card reveal">
+            <h3>검증 질문</h3>
+            <p>
+              <strong>상태 기반 입력이</strong> 탐색 시간을 줄이고<br />
+              사용자가 “납득 가능한 선택”을 하게 만드는가?
+            </p>
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>
+            <strong>프로젝트 배경</strong><br />
+            대학교 교양 수업 아이디어를, 이후 PM 관점에서 문제 정의·가설·지표
+            중심으로 다시 정리한 케이스 스터디입니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM -->
+    <section
+      id="problem"
+      style="
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      "
+    >
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">PROBLEM</div>
+          <h2 class="section-title">문제 정의</h2>
+          <p class="section-subtitle">
+            문제는 “뭐가 맛있냐”가 아니라,
+            <strong>선택지가 많을수록 결정이 느려지고 후회가 커지는 구조</strong
+            >였다.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card reveal">
+            <h3>표면(현상)</h3>
+            <p>
+              추천은 넘치는데, “지금 나에게 맞는” 기준이 없어 계속 스크롤한다.
+              결국 <strong>아무거나</strong>를 선택한다.
+            </p>
+          </div>
+          <div class="card reveal">
+            <h3>본질(원인)</h3>
+            <p>
+              사용자는 메뉴가 아니라
+              <strong>결정 기준을 세우는 과정</strong>에서 피로를 느낀다.
+              배고픔/스트레스가 높을수록 결정 비용이 급상승한다.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>
+            <strong>Problem Statement</strong><br />
+            사용자는 메뉴가 부족해서가 아니라,
+            <strong>지금 상황에 맞는 선택 기준이 없어서</strong> 결정을 미루고
+            후회한다. 따라서 문제는 ‘추천 정확도’가 아니라
+            <strong>결정 기준을 얼마나 빠르게 제공하느냐</strong>에 있다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STRATEGY -->
+    <section id="strategy">
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">SOLUTION</div>
+          <h2 class="section-title">솔루션 전략</h2>
+          <p class="section-subtitle">
+            목표는 추천을 “잘” 하는 게 아니라,
+            <strong>결정 과정을 짧고 단단하게 만드는 것</strong>. 상태 입력 →
+            3개 추천 → 이유 제공으로 “선택”만 남겼다.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card reveal">
+            <h3>핵심 가설</h3>
+            <p>
+              상태(배고픔/스트레스/식사 후 계획)를 먼저 구조화하면
+              <strong>결정 시간</strong>과 <strong>인지 부하</strong>를 줄일 수
+              있다.
+            </p>
+          </div>
+          <div class="card reveal">
+            <h3>차별화(포지셔닝)</h3>
+            <p>
+              기존: 인기/유사유저/평점 기반 “무엇을 추천”<br />
+              결정식탁: 상태 기반 “어떻게 결정”<br />
+              <strong>선택지는 3개로 고정</strong>해 결정 부담을 낮춘다.
+            </p>
+          </div>
+        </div>
+
+        <div style="margin-top: 18px" class="reveal">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 28%">Decision Variables</th>
+                <th>선정 기준(왜 이 변수인가)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>배고픔 정도</td>
+                <td>
+                  포만감/양/소요 시간 니즈를 즉시 반영(결정 속도에 직접 영향)
+                </td>
+              </tr>
+              <tr>
+                <td>스트레스/기분</td>
+                <td>위로/자극 등 선호 방향이 바뀌는 핵심 심리 변수</td>
+              </tr>
+              <tr>
+                <td>식사 후 계획</td>
+                <td>업무/휴식/운동 맥락에 따라 무게감·소화부담이 달라짐</td>
+              </tr>
+              <tr>
+                <td>제약 조건</td>
+                <td>
+                  알레르기/채식/다이어트는 선택 실패를 만드는 하드 제약 → 먼저
+                  제거
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-note">
+            원칙: “입력은 최소로, 결과는 납득 가능하게.”
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>
+            <strong>Explainable Recommendation</strong><br />
+            모델 없이도 “상태 → 규칙 → 결과”가 보이도록 설계했다. 사용자는
+            <strong>추천 결과보다 ‘이유’에서 신뢰</strong>를 만든다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MVP -->
+    <section
+      id="mvp"
+      style="
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      "
+    >
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">MVP</div>
+          <h2 class="section-title">MVP 범위 & 의사결정 구조</h2>
+          <p class="section-subtitle">
+            “기능 최소화”가 아니라
+            <strong>‘검증 질문에만 필요한 것만 남긴 설계’</strong>입니다.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card reveal">
+            <h3>✓ 지금 검증할 것</h3>
+            <p>
+              <strong>가설:</strong> “상태 입력 → 3개 추천”이
+              <strong>결정 시간을 단축</strong>하는가?<br /><br />
+              1) 상태 입력(3문항, 10초)<br />
+              2) 3개 후보(서로 다른 유형)<br />
+              3) 추천 이유 1줄(설명 가능성)<br />
+              4) 대체 메뉴 제공(동일 목적 내 교체)
+            </p>
+          </div>
+
+          <div class="card reveal">
+            <h3>→ 다음 단계로 미룬 것</h3>
+            <p>
+              <strong>이유:</strong> 결정 “이후” 가치 기능은 PMF 이후<br /><br />
+              • 영양 분석/칼로리 트래킹(정확 데이터 필요)<br />
+              • 마이데이터 연동(법/동의/연동 비용)<br />
+              • 개인화 학습(로그 축적 필요)<br />
+              • 소셜 기능(공유/추천)
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="step reveal">
+            <div class="num">1</div>
+            <div>
+              <h3>입력 최소화</h3>
+              <p>핵심 변수만 남기고, “고민”을 “선택”으로 바꾸는 질문만 유지.</p>
+            </div>
+          </div>
+          <div class="step reveal">
+            <div class="num">2</div>
+            <div>
+              <h3>후보 3개 고정</h3>
+              <p>선택지를 제한해 비교 비용을 줄이고, 결정 순간을 압축.</p>
+            </div>
+          </div>
+          <div class="step reveal">
+            <div class="num">3</div>
+            <div>
+              <h3>이유 1줄 제공</h3>
+              <p>사용자 신뢰는 “결과”가 아니라 “납득”에서 발생.</p>
+            </div>
+          </div>
+          <div class="step reveal">
+            <div class="num">4</div>
+            <div>
+              <h3>대체 메뉴</h3>
+              <p>
+                결정이 어려울 때 ‘다른 유형’이 아니라 ‘같은 목적 내 대체’로
+                흔들림 최소화.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section id="demo">
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">DEMO</div>
+          <h2 class="section-title">
+            작동 데모: 10초 입력 → 3개 후보 → 최종 1개
+          </h2>
+          <p class="section-subtitle">
+            포트폴리오에서 “로직을 설명”만 하면 신뢰가 약해질 수 있어,
+            <strong>실제로 입력하면 결과가 나오도록</strong> 구성했습니다.
+          </p>
+        </div>
+
+        <div class="demo-wrap reveal" aria-label="Decision Table Demo">
+          <div class="demo-head">
+            <h3>지금 상태로 추천 받기</h3>
+            <p>
+              입력값은 저장되지 않아요. (히스토리는 “선택된 메뉴”만 로컬에
+              저장해 반복을 줄입니다)
+            </p>
+          </div>
+
+          <div class="demo-body">
+            <!-- FORM -->
+            <div class="form">
+              <div class="field">
+                <div class="label">배고픔 정도</div>
+                <div class="seg" role="radiogroup" aria-label="Hunger">
+                  <input
+                    id="hun3"
+                    name="hunger"
+                    type="radio"
+                    value="3"
+                    checked
+                  />
+                  <label for="hun3">매우 배고픔</label>
+                  <input id="hun2" name="hunger" type="radio" value="2" />
+                  <label for="hun2">보통</label>
+                  <input id="hun1" name="hunger" type="radio" value="1" />
+                  <label for="hun1">조금</label>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">스트레스 수준</div>
+                <div class="seg" role="radiogroup" aria-label="Stress">
+                  <input
+                    id="st3"
+                    name="stress"
+                    type="radio"
+                    value="3"
+                    checked
+                  />
+                  <label for="st3">높음</label>
+                  <input id="st2" name="stress" type="radio" value="2" />
+                  <label for="st2">보통</label>
+                  <input id="st1" name="stress" type="radio" value="1" />
+                  <label for="st1">낮음</label>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">식사 후 계획</div>
+                <div class="seg" role="radiogroup" aria-label="After plan">
+                  <input
+                    id="pl_work"
+                    name="plan"
+                    type="radio"
+                    value="work"
+                    checked
+                  />
+                  <label for="pl_work">일/공부</label>
+                  <input id="pl_rest" name="plan" type="radio" value="rest" />
+                  <label for="pl_rest">휴식</label>
+                  <input id="pl_out" name="plan" type="radio" value="out" />
+                  <label for="pl_out">외출</label>
+                  <input
+                    id="pl_workout"
+                    name="plan"
+                    type="radio"
+                    value="workout"
+                  />
+                  <label for="pl_workout">운동</label>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="label">제약 조건(선택 실패 방지)</div>
+                <div class="mini">
+                  <select id="diet" class="select" aria-label="Diet">
+                    <option value="none" selected>다이어트: 해당 없음</option>
+                    <option value="light">가볍게(저부담)</option>
+                    <option value="protein">단백질 위주</option>
+                  </select>
+                  <select id="veg" class="select" aria-label="Vegetarian">
+                    <option value="no" selected>채식: 아니오</option>
+                    <option value="yes">채식: 예</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="demo-actions">
+                <button
+                  class="btn btn-blue btn-small"
+                  id="btnRecommend"
+                  type="button"
+                >
+                  3개 후보 만들기
+                </button>
+                <button
+                  class="btn btn-soft btn-small btn-outline"
+                  id="btnReset"
+                  type="button"
+                >
+                  초기화
+                </button>
+                <button
+                  class="btn btn-soft btn-small btn-outline"
+                  id="btnClearHistory"
+                  type="button"
+                >
+                  히스토리 삭제
+                </button>
+              </div>
+
+              <div class="callout" style="margin-top: 14px">
+                <p>
+                  <strong>의도</strong><br />
+                  많은 메뉴를 보여주는 대신, “지금 상태에 맞는 기준”으로 후보를
+                  줄여
+                  <strong>결정 순간을 짧게</strong> 만든다.
+                </p>
+              </div>
+            </div>
+
+            <!-- RESULT -->
+            <div class="result" aria-live="polite">
+              <div class="result-top">
+                <div>
+                  <div style="font-weight: 950; letter-spacing: -0.01em">
+                    추천 후보(3개)
+                  </div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--muted);
+                      margin-top: 4px;
+                    "
+                  >
+                    서로 다른 유형 3개를 제시하고, 선택 후에는 “대체 메뉴”로
+                    흔들림을 줄입니다.
+                  </div>
+                </div>
+                <span class="pill" id="pillState">상태: <b>—</b></span>
+              </div>
+
+              <div class="cands" id="cands"></div>
+
+              <div class="final" id="final" style="display: none">
+                <h4>오늘의 최종 메뉴</h4>
+                <div class="big" id="finalMenu">—</div>
+                <div class="why" id="finalWhy">—</div>
+              </div>
+
+              <div class="history" id="historyBox">
+                <div class="history-title">
+                  최근 선택(7일) · 반복 방지에 사용
+                </div>
+                <div class="history-list" id="historyList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>
+            <strong>포트폴리오 포인트</strong><br />
+            “이커머스/추천”처럼 정답이 없는 영역에서도, PM은
+            <strong>결정 구조(입력→제약→후보→확정)</strong>를 설계해 사용자의
+            비용을 줄일 수 있다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOGIC -->
+    <section id="logic">
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">LOGIC</div>
+          <h2 class="section-title">추천 로직 설계 (Rule-based)</h2>
+          <p class="section-subtitle">
+            초기에는 데이터가 없다는 전제에서,
+            <strong>정확도보다 ‘일관성’과 ‘설명 가능성’</strong>을 선택했습니다.
+            “왜 이 메뉴가 나왔는지”를 1줄로 설명할 수 있어야 합니다.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card reveal">
+            <h3>유형 A: 빠른 포만</h3>
+            <p>
+              조건: 배고픔 높음(3) + 시간이 부족/외출/업무<br />
+              예: 제육덮밥, 불고기덮밥, 햄버거, 김밥
+            </p>
+          </div>
+          <div class="card reveal">
+            <h3>유형 B: 위로/따뜻</h3>
+            <p>
+              조건: 스트레스 높음(3) + 따뜻/국물 선호가 필요한 상황<br />
+              예: 국밥, 칼국수, 콩나물국밥, 소고기무국
+            </p>
+          </div>
+          <div class="card reveal">
+            <h3>유형 C: 균형/가벼움</h3>
+            <p>
+              조건: 배고픔 낮음(1) 또는 운동 계획/다이어트<br />
+              예: 샐러드볼, 포케, 두부/계란 중심, 죽
+            </p>
+          </div>
+        </div>
+
+        <div class="reveal" style="margin-top: 18px">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 22%">입력 조합</th>
+                <th style="width: 22%">우선순위</th>
+                <th>추천 방향</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>배고픔 3 + 스트레스 3</td>
+                <td>따뜻/포만</td>
+                <td>국물류 or 덮밥류를 먼저 제안(회복 + 결정 속도)</td>
+              </tr>
+              <tr>
+                <td>배고픔 3 + 계획=외출</td>
+                <td>속도/휴대</td>
+                <td>버거/김밥/샌드류 등 “즉시 섭취” 우선</td>
+              </tr>
+              <tr>
+                <td>계획=운동</td>
+                <td>부담 최소</td>
+                <td>단백질/저부담 구성(기름진 튀김류 제외)</td>
+              </tr>
+              <tr>
+                <td>채식=예</td>
+                <td>하드 필터</td>
+                <td>육류 메뉴를 사전에 제거하고 채식 풀에서만 후보 생성</td>
+              </tr>
+              <tr>
+                <td>최근 7일 반복</td>
+                <td>다양성</td>
+                <td>동일 메뉴는 제외, 동일 “유형” 내에서 대체 메뉴 제시</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-note">
+            원칙: (1) 하드 제약 먼저 제거 → (2) 상태로 유형 선택 → (3) 후보
+            3개는 서로 다른 유형 → (4) 확정 후에는 “같은 유형 내 대체”를 제공
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>
+            <strong>고도화 로드맵(학습)</strong><br />
+            선택 로그/만족도 → 시간대/상황별 선호 → 반복 회피(다양성) → 개인화
+            고도화
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRICS -->
+    <section
+      id="metrics"
+      style="
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      "
+    >
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">METRICS</div>
+          <h2 class="section-title">성공 지표 (KPI)</h2>
+          <p class="section-subtitle">
+            기능 성과가 아니라,
+            <strong>결정 비용(시간·후회·재사용)이 줄었는지</strong>를 측정하도록
+            설계했습니다.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card reveal">
+            <h3>North Star</h3>
+            <p>
+              <strong>Weekly Retention</strong><br />
+              반복 사용을 “결정 피로 감소”의 신호로 정의
+            </p>
+          </div>
+          <div class="card reveal">
+            <h3>Time to Decision</h3>
+            <p>
+              <strong>30초 이내</strong><br />
+              첫 화면 → 후보 확인 → 최종 확정까지의 시간
+            </p>
+          </div>
+          <div class="card reveal">
+            <h3>Choice Satisfaction</h3>
+            <p>
+              <strong>4.0/5.0+</strong><br />
+              선택 후 만족도(정성+정량)
+            </p>
+          </div>
+        </div>
+
+        <div style="margin-top: 18px" class="reveal">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30%">지표</th>
+                <th style="width: 20%">목표</th>
+                <th>측정 의도</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Candidate → Final 전환율</td>
+                <td>80%+</td>
+                <td>후보를 보고도 결정 못 하는 문제(결정 비용)가 줄었는지</td>
+              </tr>
+              <tr>
+                <td>대체 메뉴 클릭률</td>
+                <td>20~35%</td>
+                <td>
+                  후보가 “거의 맞지만 2% 아쉬운” 상황에서 대체가 도움이 되는지
+                </td>
+              </tr>
+              <tr>
+                <td>7-day Retention</td>
+                <td>40%+</td>
+                <td>일상 문제를 지속적으로 해결하는지 검증</td>
+              </tr>
+              <tr>
+                <td>반복 체감(최근 7일 중복률)</td>
+                <td>↓</td>
+                <td>“또 이거?”로 인한 이탈을 줄였는지(다양성 로직 효과)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROTOTYPE -->
+    <section id="prototype">
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">PROTOTYPE</div>
+          <h2 class="section-title">화면 설계 (Kakao Oven)</h2>
+          <p class="section-subtitle">
+            화면 목표는 “예쁜 UI”가 아니라
+            <strong>10초 입력 → 즉시 결과 → 이유 제공</strong> 플로우를 검증하는
+            것입니다.
+          </p>
+        </div>
+
+        <div class="gallery">
+          <div class="shot reveal">
+            <strong>1. 온보딩</strong><br /><br />
+            제약 조건(알레르기/채식)<br />
+            최소 입력으로 수집<br />
+            <span style="color: var(--muted)">→ 선택 실패 방지</span>
+          </div>
+          <div class="shot reveal">
+            <strong>2. 상태 체크</strong><br /><br />
+            배고픔/스트레스/계획<br />
+            3문항 버튼 선택<br />
+            <span style="color: var(--muted)">→ 입력 10초</span>
+          </div>
+          <div class="shot reveal">
+            <strong>3. 추천 결과</strong><br /><br />
+            3개만 노출<br />
+            이유 1줄 제공<br />
+            <span style="color: var(--muted)">→ 납득/신뢰</span>
+          </div>
+          <div class="shot reveal">
+            <strong>4. 액션</strong><br /><br />
+            배달앱/지도 연동<br />
+            바로 실행<br />
+            <span style="color: var(--muted)">→ 이탈 최소화</span>
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>
+            <strong>설계 의도</strong><br />
+            프로토타입은 “시각 완성도”가 아니라
+            <strong>결정 순간의 UX를 얼마나 압축했는지</strong>를 확인하기 위한
+            실험 도구였습니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- REFLECTION -->
+    <section
+      id="reflection"
+      style="background: var(--surface); border-top: 1px solid var(--border)"
+    >
+      <div class="container">
+        <div class="section-head reveal">
+          <div class="section-kicker">REFLECTION</div>
+          <h2 class="section-title">Trade-off와 Next Step</h2>
+          <p class="section-subtitle">
+            이 프로젝트의 핵심은 “완성”이 아니라
+            <strong>가설을 검증할 수 있는 최소 구조를 만든 것</strong>입니다.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card reveal">
+            <h3>현실적 제약</h3>
+            <p>
+              • 실사용자 테스트 없음(관찰 기반 가설)<br />
+              • 음식점 DB/API 연동 미구현<br />
+              • 룰 기반 추천의 정확도/다양성 한계<br />
+              • 개인화는 로그 축적 이후 단계
+            </p>
+          </div>
+
+          <div class="card reveal">
+            <h3>핵심 학습</h3>
+            <p>
+              • 문제를 재정의하면 KPI가 바뀐다(정확도 → 결정 비용)<br />
+              • MVP는 “기능 수”가 아니라 “검증 질문”이 핵심이다<br />
+              • 추천 시스템의 신뢰는 ‘이유’에서 시작된다<br />
+              • PM은 “무엇을 안 만들지”를 결정한다
+            </p>
+          </div>
+        </div>
+
+        <div class="callout reveal">
+          <p>
+            <strong>다음 실험(Iteration Hypothesis)</strong><br />
+            ① 5명 테스트로 Time-to-Decision/만족도 측정(전/후 비교)<br />
+            ② 최근 7일 제외 + 다양성 룰 고도화(‘유형 다양성’까지 관리)<br />
+            ③ 추천 이유를 상황 맞춤 문장으로 고도화(LLM)하되, 근거(규칙)를 함께
+            노출<br />
+            ④ B2B(구내식당/단체급식)로 의사결정 구조 확장 검토
+          </p>
+        </div>
+
+        <div
+          class="callout reveal"
+          style="
+            border-color: rgba(17, 24, 39, 0.22);
+            background: linear-gradient(
+                0deg,
+                rgba(17, 24, 39, 0.04),
+                rgba(17, 24, 39, 0.04)
+              ),
+              #fff;
+          "
+        >
+          <p>
+            <strong>이 프로젝트가 내게 준 것</strong><br />
+            PM은 코드를 짜는 사람이 아니라,
+            <strong>문제를 ‘검증 가능한 질문’으로 바꾸고</strong>
+            그 질문에 답할 수 있는 구조를 만드는 사람이라는 걸 체감했다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact" class="footer">
+      <div class="container">
+        <div class="foot-grid">
+          <div>
+            <div
+              style="
+                font-weight: 950;
+                color: var(--text);
+                letter-spacing: -0.02em;
+              "
+            >
+              옥다애
+            </div>
+            <div style="margin-top: 6px; font-size: 13px">
+              Product Manager / Service Planner<br />
+              <span style="color: var(--muted-2)"
+                >개인화 · 데이터 기반 의사결정 · 서비스 기획</span
+              >
+            </div>
+            <div
+              style="margin-top: 10px; font-size: 12px; color: var(--muted-2)"
+            >
+              © <span id="year"></span> Decision Table Portfolio
+            </div>
+          </div>
+
+          <div class="links">
+            <a class="link" href="mailto:your.email@example.com">Email</a>
+            <a class="link" href="#" target="_blank" rel="noreferrer"
+              >LinkedIn</a
+            >
+            <a class="link" href="#" target="_blank" rel="noreferrer">Resume</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // ===== util =====
+      const $ = (s) => document.querySelector(s);
+      const $$ = (s) => document.querySelectorAll(s);
+
+      // year
+      $("#year").textContent = new Date().getFullYear();
+
+      // reveal on scroll
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) entry.target.classList.add("show");
+          });
+        },
+        { threshold: 0.12 }
+      );
+      $$(".reveal").forEach((el) => observer.observe(el));
+
+      // mobile drawer
+      const menuBtn = $("#menuBtn");
+      const drawer = $("#drawer");
+
+      function setDrawer(open) {
+        drawer.classList.toggle("open", open);
+        menuBtn.setAttribute("aria-expanded", String(open));
+      }
+      menuBtn?.addEventListener("click", () => {
+        const isOpen = drawer.classList.contains("open");
+        setDrawer(!isOpen);
+      });
+      $$(".drawer-link").forEach((a) =>
+        a.addEventListener("click", () => setDrawer(false))
+      );
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") setDrawer(false);
+      });
+      document.addEventListener("click", (e) => {
+        if (!drawer.classList.contains("open")) return;
+        const t = e.target;
+        const clickedInsideNav =
+          t.closest("nav") || t === menuBtn || t.closest("#drawer");
+        if (!clickedInsideNav) setDrawer(false);
+      });
+
+      // ===== Decision Table Demo Logic =====
+
+      // menu pool (유형/특성/태그)
+      const MENU_POOL = [
+        // A: 빠른 포만(덮밥/간편/패스트)
+        {
+          id: "spicy_pork_bowl",
+          name: "제육덮밥",
+          type: "A",
+          tags: ["hot", "fast", "full"],
+        },
+        {
+          id: "bulgogi_bowl",
+          name: "불고기덮밥",
+          type: "A",
+          tags: ["mild", "fast", "full"],
+        },
+        {
+          id: "pork_cutlet",
+          name: "돈까스",
+          type: "A",
+          tags: ["fried", "full"],
+        },
+        {
+          id: "bibimbap",
+          name: "비빔밥",
+          type: "A",
+          tags: ["balanced", "full"],
+        },
+        { id: "kimbap", name: "김밥", type: "A", tags: ["fast", "portable"] },
+        { id: "burger", name: "햄버거", type: "A", tags: ["fast", "portable"] },
+
+        // B: 위로/따뜻(국물/면/따뜻)
+        {
+          id: "gukbap",
+          name: "국밥",
+          type: "B",
+          tags: ["warm", "soup", "full"],
+        },
+        {
+          id: "kal_guksu",
+          name: "칼국수",
+          type: "B",
+          tags: ["warm", "noodle", "soup"],
+        },
+        {
+          id: "kongnamul_gukbap",
+          name: "콩나물국밥",
+          type: "B",
+          tags: ["warm", "soup", "refresh"],
+        },
+        {
+          id: "beef_radish_soup",
+          name: "소고기무국",
+          type: "B",
+          tags: ["warm", "soup", "mild"],
+        },
+        { id: "ramen", name: "라면", type: "B", tags: ["warm", "hot", "fast"] },
+
+        // C: 균형/가벼움(운동/저부담/샐러드)
+        {
+          id: "salad_bowl",
+          name: "샐러드볼",
+          type: "C",
+          tags: ["light", "diet", "fresh"],
+        },
+        {
+          id: "poke",
+          name: "포케",
+          type: "C",
+          tags: ["light", "protein", "fresh"],
+        },
+        {
+          id: "chicken_breast_plate",
+          name: "닭가슴살 플레이트",
+          type: "C",
+          tags: ["protein", "diet"],
+        },
+        {
+          id: "tofu_plate",
+          name: "두부 플레이트",
+          type: "C",
+          tags: ["veg", "protein", "light"],
+        },
+        { id: "porridge", name: "죽", type: "C", tags: ["light", "warm"] },
+      ];
+
+      const TYPE_LABEL = {
+        A: "빠른 포만",
+        B: "위로/따뜻",
+        C: "균형/가벼움",
+      };
+
+      const HISTORY_KEY = "dt_history_v1";
+
+      function nowISODate() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      }
+
+      function loadHistory() {
+        try {
+          const raw = localStorage.getItem(HISTORY_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          // keep last 7 days (by date uniqueness)
+          const today = new Date();
+          const cut = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return parsed.filter((h) => new Date(h.date) >= cut);
+        } catch {
+          return [];
+        }
+      }
+
+      function saveHistory(items) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
+      }
+
+      function renderHistory() {
+        const list = $("#historyList");
+        const items = loadHistory();
+        list.innerHTML = "";
+        if (items.length === 0) {
+          const el = document.createElement("div");
+          el.className = "hchip";
+          el.textContent = "최근 선택 없음";
+          list.appendChild(el);
+          return;
+        }
+        items
+          .slice()
+          .reverse()
+          .forEach((h) => {
+            const el = document.createElement("div");
+            el.className = "hchip";
+            el.textContent = `${h.name}`;
+            list.appendChild(el);
+          });
+      }
+
+      function readInputs() {
+        const hunger = Number(
+          document.querySelector('input[name="hunger"]:checked')?.value ?? 3
+        );
+        const stress = Number(
+          document.querySelector('input[name="stress"]:checked')?.value ?? 3
+        );
+        const plan =
+          document.querySelector('input[name="plan"]:checked')?.value ?? "work";
+        const diet = $("#diet").value;
+        const veg = $("#veg").value === "yes";
+        return { hunger, stress, plan, diet, veg };
+      }
+
+      function buildStateLabel({ hunger, stress, plan, diet, veg }) {
+        const h =
+          hunger === 3 ? "배고픔↑" : hunger === 2 ? "배고픔= " : "배고픔↓";
+        const s =
+          stress === 3
+            ? "스트레스↑"
+            : stress === 2
+            ? "스트레스= "
+            : "스트레스↓";
+        const p =
+          plan === "work"
+            ? "일/공부"
+            : plan === "rest"
+            ? "휴식"
+            : plan === "out"
+            ? "외출"
+            : "운동";
+        const d =
+          diet === "none" ? "일반" : diet === "light" ? "저부담" : "단백질";
+        const v = veg ? "채식" : "비채식";
+        return `${h} · ${s} · ${p} · ${d} · ${v}`;
+      }
+
+      // decide preferred type scores
+      function scoreTypes(input) {
+        const { hunger, stress, plan, diet, veg } = input;
+        const score = { A: 0, B: 0, C: 0 };
+
+        // hunger
+        if (hunger === 3) (score.A += 3), (score.B += 2);
+        if (hunger === 2) (score.A += 1), (score.B += 1), (score.C += 1);
+        if (hunger === 1) score.C += 3;
+
+        // stress
+        if (stress === 3) (score.B += 3), (score.A += 1);
+        if (stress === 2) (score.B += 1), (score.C += 1);
+        if (stress === 1) score.C += 1;
+
+        // plan
+        if (plan === "out") score.A += 2; // portable/fast
+        if (plan === "work") (score.A += 1), (score.C += 1);
+        if (plan === "rest") score.B += 1;
+        if (plan === "workout") (score.C += 3), (score.A -= 1);
+
+        // diet
+        if (diet === "light") (score.C += 3), (score.B += 1), (score.A -= 1);
+        if (diet === "protein") (score.C += 2), (score.A += 1);
+
+        // veg
+        if (veg) score.C += 2;
+
+        return score;
+      }
+
+      function filterPool(input) {
+        let pool = MENU_POOL.slice();
+        const { diet, veg, plan } = input;
+
+        if (veg) {
+          // remove obvious meat-heavy items; keep tofu/salad/poke/porridge etc.
+          const blocked = new Set([
+            "spicy_pork_bowl",
+            "bulgogi_bowl",
+            "pork_cutlet",
+            "gukbap",
+            "kongnamul_gukbap",
+            "beef_radish_soup",
+            "chicken_breast_plate",
+          ]);
+          pool = pool.filter((m) => !blocked.has(m.id));
+        }
+
+        if (diet === "light") {
+          // downrank fried/heavy by filtering out worst offenders
+          const blocked = new Set(["pork_cutlet", "burger", "ramen"]);
+          pool = pool.filter((m) => !blocked.has(m.id));
+        }
+
+        if (plan === "workout") {
+          // avoid fried/heavy & too spicy
+          const blocked = new Set([
+            "pork_cutlet",
+            "burger",
+            "ramen",
+            "spicy_pork_bowl",
+          ]);
+          pool = pool.filter((m) => !blocked.has(m.id));
+        }
+
+        return pool;
+      }
+
+      function recentMenuIds() {
+        const hist = loadHistory();
+        return new Set(hist.map((h) => h.id));
+      }
+
+      function pickCandidates(input) {
+        const pool = filterPool(input);
+        const score = scoreTypes(input);
+
+        // type preference order
+        const types = Object.entries(score)
+          .sort((a, b) => b[1] - a[1])
+          .map(([t]) => t);
+
+        // We want 3 different types if possible
+        const recent = recentMenuIds();
+        const picked = [];
+
+        function pickOne(type) {
+          const candidates = pool
+            .filter((m) => m.type === type)
+            .filter((m) => !recent.has(m.id)); // avoid recent 7 days
+          const fallback = pool.filter((m) => m.type === type);
+
+          const arr = candidates.length ? candidates : fallback;
+          if (!arr.length) return null;
+
+          // simple randomness with slight preference by tags vs state
+          // (kept deterministic-ish: use stable random seed from time)
+          const idx = Math.floor(Math.random() * arr.length);
+          return arr[idx];
+        }
+
+        // first pass: different types
+        for (const t of types) {
+          if (picked.length >= 3) break;
+          const m = pickOne(t);
+          if (m && !picked.find((x) => x.id === m.id)) picked.push(m);
+        }
+
+        // if still less than 3, fill from any type
+        while (picked.length < 3) {
+          const arr = pool.filter((m) => !picked.find((x) => x.id === m.id));
+          if (!arr.length) break;
+          const idx = Math.floor(Math.random() * arr.length);
+          picked.push(arr[idx]);
+        }
+
+        // ensure 3
+        return picked.slice(0, 3);
+      }
+
+      function reasonFor(menu, input) {
+        const { hunger, stress, plan, diet, veg } = input;
+
+        // One-line reasons: deterministic, explainable
+        if (menu.type === "B") {
+          if (stress === 3)
+            return "스트레스가 높아서 ‘따뜻한 위로’ 쪽으로 결정 부담을 줄였어.";
+          if (hunger === 3)
+            return "배고픔이 높아 따뜻하면서도 포만감 있는 선택이야.";
+          return "부담 없이 따뜻하게 먹기 좋은 선택이야.";
+        }
+        if (menu.type === "C") {
+          if (plan === "workout")
+            return "운동 계획이 있어서 ‘가볍고 단백질/저부담’으로 맞췄어.";
+          if (diet === "light")
+            return "저부담 모드라서 속이 편한 쪽으로 추천했어.";
+          if (veg)
+            return "채식 조건을 반영해서 만족감은 유지하고 부담은 줄였어.";
+          return "지금 상태에선 균형 잡힌 한 끼가 결정 후회가 적어.";
+        }
+        // A
+        if (plan === "out")
+          return "외출 계획이라 빠르게 먹을 수 있는 ‘즉시 포만’이 유리해.";
+        if (hunger === 3)
+          return "배고픔이 높아서 ‘빠른 포만’이 결정 시간을 줄여줘.";
+        return "지금은 고민 없이 바로 만족을 주는 선택이야.";
+      }
+
+      function renderCandidates(cands, input) {
+        const wrap = $("#cands");
+        wrap.innerHTML = "";
+
+        cands.forEach((m) => {
+          const el = document.createElement("div");
+          el.className = "cand";
+          el.dataset.id = m.id;
+
+          el.innerHTML = `
+            <div class="cand-head">
+              <div class="cand-title">${m.name}</div>
+              <div class="cand-tag">${TYPE_LABEL[m.type]}</div>
+            </div>
+            <div class="cand-reason">${reasonFor(m, input)}</div>
+            <div class="cand-actions">
+              <button class="btn btn-small btn-primary" data-act="choose" data-id="${
+                m.id
+              }">이걸로 결정</button>
+              <button class="btn btn-small btn-outline" data-act="alt" data-id="${
+                m.id
+              }">대체 메뉴</button>
+            </div>
+          `;
+          wrap.appendChild(el);
+        });
+      }
+
+      function findAlternatives(menuId, input) {
+        const pool = filterPool(input);
+        const base =
+          pool.find((m) => m.id === menuId) ||
+          MENU_POOL.find((m) => m.id === menuId);
+        if (!base) return [];
+        const recent = recentMenuIds();
+
+        // alternatives: same type, different item, avoid recent if possible
+        const sameType = pool.filter(
+          (m) => m.type === base.type && m.id !== base.id
+        );
+        const preferred = sameType.filter((m) => !recent.has(m.id));
+        const arr = preferred.length ? preferred : sameType;
+        // return up to 2
+        return arr.sort(() => Math.random() - 0.5).slice(0, 2);
+      }
+
+      function commitFinal(menu, input, why) {
+        $("#final").style.display = "grid";
+        $("#finalMenu").textContent = menu.name;
+        $("#finalWhy").textContent = why;
+
+        // save to history (keep last 7 days)
+        const items = loadHistory();
+        const today = nowISODate();
+
+        // remove same-date previous to keep day one
+        const filtered = items.filter((x) => x.date !== today);
+        filtered.push({
+          date: today,
+          id: menu.id,
+          name: menu.name,
+          type: menu.type,
+        });
+
+        // cap length
+        const capped = filtered.slice(-14); // safety; filtered is already 7d cut on load
+        saveHistory(capped);
+        renderHistory();
+
+        // pseudo event
+        console.log("[DT_EVENT]", {
+          event: "final_select",
+          menu: menu.id,
+          input,
+        });
+      }
+
+      function resetDemoUI() {
+        $("#cands").innerHTML = "";
+        $("#final").style.display = "none";
+        $("#pillState").innerHTML = `상태: <b>—</b>`;
+      }
+
+      // bind demo
+      const btnRecommend = $("#btnRecommend");
+      const btnReset = $("#btnReset");
+      const btnClearHistory = $("#btnClearHistory");
+
+      btnRecommend.addEventListener("click", () => {
+        resetDemoUI();
+        const input = readInputs();
+        $("#pillState").innerHTML = `상태: <b>${buildStateLabel(input)}</b>`;
+
+        const cands = pickCandidates(input);
+        renderCandidates(cands, input);
+
+        console.log("[DT_EVENT]", {
+          event: "recommend_view",
+          input,
+          candidates: cands.map((c) => c.id),
+        });
+      });
+
+      btnReset.addEventListener("click", () => {
+        // reset form defaults
+        $("#hun3").checked = true;
+        $("#st3").checked = true;
+        $("#pl_work").checked = true;
+        $("#diet").value = "none";
+        $("#veg").value = "no";
+        resetDemoUI();
+      });
+
+      btnClearHistory.addEventListener("click", () => {
+        localStorage.removeItem(HISTORY_KEY);
+        renderHistory();
+      });
+
+      // event delegation for candidate buttons
+      $("#cands").addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        const act = btn.dataset.act;
+        const id = btn.dataset.id;
+        const input = readInputs();
+
+        const candNode = btn.closest(".cand");
+        const cand = MENU_POOL.find((m) => m.id === id);
+        if (!cand) return;
+
+        if (act === "choose") {
+          const why = reasonFor(cand, input);
+          commitFinal(cand, input, why);
+          return;
+        }
+
+        if (act === "alt") {
+          const alts = findAlternatives(id, input);
+          if (alts.length === 0) {
+            btn.textContent = "대체 없음";
+            btn.disabled = true;
+            return;
+          }
+
+          // replace this card with first alternative (stable UX)
+          const next = alts[0];
+          const newReason = reasonFor(next, input);
+
+          candNode.dataset.id = next.id;
+          candNode.querySelector(".cand-title").textContent = next.name;
+          candNode.querySelector(".cand-tag").textContent =
+            TYPE_LABEL[next.type];
+          candNode.querySelector(".cand-reason").textContent = newReason;
+
+          // update buttons dataset
+          candNode.querySelectorAll("button").forEach((b) => {
+            b.dataset.id = next.id;
+          });
+
+          console.log("[DT_EVENT]", {
+            event: "alt_click",
+            from: id,
+            to: next.id,
+            input,
+          });
+        }
+      });
+
+      // init history
+      renderHistory();
+    </script>
+  </body>
+</html>

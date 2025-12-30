@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>결정식탁 (Decision Table) | Prototype</title>
+    <meta
+      name="description"
+      content="상태 10초 입력 → 서로 다른 이유 3개 후보 → 1개 결정. 대체 메뉴는 1개씩 교체. 결정은 여기서 끝."
+    />
+    <style>
+      :root {
+        --bg: #0b0c10;
+        --surface: rgba(255, 255, 255, 0.06);
+        --surface2: rgba(255, 255, 255, 0.09);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.72);
+        --muted2: rgba(255, 255, 255, 0.55);
+        --accent: #7c5cff;
+        --accent2: #00d1ff;
+        --good: #28d17c;
+        --warn: #ffb020;
+        --bad: #ff5c7a;
+        --shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+        --radius: 18px;
+        --radius2: 14px;
+        --gap: 14px;
+        --max: 1120px;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial,
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        color: var(--text);
+        background: radial-gradient(
+            1200px 600px at 20% 0%,
+            rgba(124, 92, 255, 0.22),
+            transparent 55%
+          ),
+          radial-gradient(
+            900px 500px at 80% 10%,
+            rgba(0, 209, 255, 0.18),
+            transparent 55%
+          ),
+          linear-gradient(180deg, #07080b, #0b0c10 40%, #07080b);
+      }
+
+      a {
+        color: inherit;
+      }
+      .back-link {
+        display: inline-block;
+        margin: 16px 0;
+        font-size: 14px;
+        color: #fff;
+        text-decoration: none;
+      }
+      .back-link:hover {
+        text-decoration: underline;
+      }
+
+      .wrap {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 22px 18px 60px;
+      }
+
+      .topbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+      }
+      .brand {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        min-width: 0;
+      }
+      .logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        box-shadow: 0 10px 30px rgba(124, 92, 255, 0.25);
+      }
+      .brand h1 {
+        font-size: 14px;
+        line-height: 1.1;
+        margin: 0;
+      }
+      .brand p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .btn {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        border-radius: 14px;
+        padding: 10px 12px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 0.06s ease, background 0.18s ease,
+          border-color 0.18s ease;
+        user-select: none;
+      }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn.primary {
+        border-color: rgba(124, 92, 255, 0.5);
+        background: linear-gradient(
+          135deg,
+          rgba(124, 92, 255, 0.95),
+          rgba(0, 209, 255, 0.85)
+        );
+        color: #0b0c10;
+        font-weight: 700;
+      }
+      .btn.ghost {
+        background: transparent;
+      }
+
+      .grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 16px;
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .card .hd {
+        padding: 16px 16px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .card .hd .title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .card .hd h2 {
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.2px;
+      }
+      .card .hd p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted2);
+      }
+      .card .bd {
+        padding: 16px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .tag .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent2);
+      }
+
+      .hero {
+        display: grid;
+        gap: 10px;
+      }
+      .hero h3 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: -0.2px;
+        line-height: 1.25;
+      }
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+      .hero .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+
+      .steps {
+        display: none;
+      }
+      .steps.active {
+        display: block;
+      }
+
+      .progress {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .pill {
+        height: 8px;
+        width: 48px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        overflow: hidden;
+      }
+      .pill > i {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+      }
+
+      .q {
+        margin: 0 0 10px;
+        font-size: 14px;
+      }
+
+      .options {
+        display: grid;
+        gap: 10px;
+      }
+      .opt {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        cursor: pointer;
+        transition: background 0.18s ease, border-color 0.18s ease,
+          transform 0.06s ease;
+      }
+      .opt:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+      .opt:active {
+        transform: translateY(1px);
+      }
+      .radio {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        margin-top: 1px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+      .radio i {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: transparent;
+      }
+      .opt.selected .radio {
+        border-color: rgba(0, 209, 255, 0.8);
+      }
+      .opt.selected .radio i {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+      }
+      .opt .lbl {
+        display: grid;
+        gap: 2px;
+      }
+      .opt .lbl strong {
+        font-size: 13px;
+        font-weight: 750;
+      }
+      .opt .lbl span {
+        font-size: 12px;
+        color: var(--muted2);
+        line-height: 1.35;
+      }
+
+      .helper {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted2);
+      }
+
+      .nav {
+        margin-top: 14px;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .candidates {
+        display: grid;
+        gap: 12px;
+      }
+
+      .menuCard {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: var(--radius);
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+      }
+      .menuTop {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .menuTitle {
+        display: grid;
+        gap: 4px;
+      }
+      .menuTitle .type {
+        font-size: 12px;
+        color: var(--muted2);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .badge {
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .badge.stability {
+        border-color: rgba(0, 209, 255, 0.25);
+      }
+      .badge.satisfy {
+        border-color: rgba(124, 92, 255, 0.3);
+      }
+      .badge.certain {
+        border-color: rgba(255, 176, 32, 0.35);
+      }
+      .badge.speed {
+        border-color: rgba(40, 209, 124, 0.35);
+      }
+      .badge.occasion {
+        border-color: rgba(255, 92, 122, 0.35);
+      }
+      .menuTitle h4 {
+        margin: 0;
+        font-size: 16px;
+        letter-spacing: -0.2px;
+      }
+      .reason {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .menuActions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .finalBox {
+        padding: 16px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        display: grid;
+        gap: 10px;
+      }
+      .finalBox .big {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.2px;
+      }
+      .finalBox .sub {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .sideCol {
+        display: grid;
+        gap: 16px;
+      }
+
+      .kv {
+        display: grid;
+        gap: 10px;
+      }
+      .kvRow {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .kvRow b {
+        font-size: 12px;
+        color: var(--muted2);
+        font-weight: 700;
+      }
+      .kvRow span {
+        font-size: 12px;
+        color: var(--text);
+      }
+
+      .codebox {
+        border-radius: var(--radius);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.25);
+        padding: 12px;
+        font-family: var(--mono);
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 11px;
+        line-height: 1.5;
+        overflow: auto;
+      }
+
+      .muted {
+        color: var(--muted2);
+      }
+
+      .sep {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 14px 0;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 18px;
+        background: rgba(0, 0, 0, 0.78);
+        color: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <a href="../" class="back-link">← 서비스 설명 페이지로</a>
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"></div>
+          <div style="min-width: 0">
+            <h1>결정식탁 Prototype</h1>
+            <p>상태 10초 입력 → 3개 후보 → 1개 결정(종료)</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" id="btnOpenMyData">마이데이터</button>
+          <button class="btn" id="btnReset">리셋</button>
+          <button class="btn primary" id="btnStart">결정 시작</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Main -->
+        <section class="card">
+          <div class="hd">
+            <div class="title">
+              <h2 id="stepTitle">01 / 시작</h2>
+              <p id="stepDesc">
+                오늘 상태만 입력하면, 이유가 다른 3개만 보여줘요.
+              </p>
+            </div>
+            <div class="progress" title="진행률">
+              <div class="pill"><i id="progressBar"></i></div>
+            </div>
+          </div>
+
+          <div class="bd">
+            <!-- HERO -->
+            <div class="steps active" data-step="hero">
+              <div class="hero">
+                <h3>
+                  “오늘 뭐 먹지?”를<br />
+                  <span style="color: rgba(0, 209, 255, 0.95)">추천</span>이
+                  아니라
+                  <span style="color: rgba(124, 92, 255, 0.95)">결정</span>으로
+                  바꾸기
+                </h3>
+                <p>
+                  결정식탁은 정확도보다 <b>결정 완료 경험</b>을 우선해요.<br />
+                  그래서 한 번에 많이 보여주지 않고, <b>서로 다른 이유 3개</b>만
+                  제시하고 끝내요.
+                </p>
+                <div class="row">
+                  <span class="tag"
+                    ><span class="dot"></span>입력 최소(10초)</span
+                  >
+                  <span class="tag"
+                    ><span class="dot"></span>후보 3개 고정</span
+                  >
+                  <span class="tag"
+                    ><span class="dot"></span>대체는 1개씩 교체</span
+                  >
+                  <span class="tag"
+                    ><span class="dot"></span>결정은 여기서 종료</span
+                  >
+                </div>
+
+                <div class="sep"></div>
+
+                <div class="nav">
+                  <button class="btn" id="btnHeroMyData">
+                    마이데이터 먼저 설정
+                  </button>
+                  <button class="btn primary" id="btnHeroGoInput">
+                    바로 입력 시작
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- INPUT 1: Hunger -->
+            <div class="steps" data-step="hunger">
+              <p class="q"><b>지금 얼마나 배고픈가요?</b></p>
+              <div class="options" id="optsHunger">
+                <div class="opt" data-value="1">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>조금</strong>
+                    <span>가볍게 먹어도 만족할 수 있어요</span>
+                  </div>
+                </div>
+                <div class="opt" data-value="2">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>보통</strong>
+                    <span>무난한 한 끼가 필요해요</span>
+                  </div>
+                </div>
+                <div class="opt" data-value="3">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>많이</strong>
+                    <span>포만감이 확실해야 해요</span>
+                  </div>
+                </div>
+              </div>
+              <div class="helper">
+                배고픔은 포만감(확실형/안정형)의 우선순위에 영향을 줘요.
+              </div>
+              <div class="nav">
+                <button class="btn" data-nav="back">이전</button>
+                <button class="btn primary" data-nav="next">다음</button>
+              </div>
+            </div>
+
+            <!-- INPUT 2: Stress -->
+            <div class="steps" data-step="stress">
+              <p class="q"><b>오늘 컨디션은 어때요?</b></p>
+              <div class="options" id="optsStress">
+                <div class="opt" data-value="1">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>여유 있어요</strong>
+                    <span>가볍게 즐길 수 있어요</span>
+                  </div>
+                </div>
+                <div class="opt" data-value="2">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>보통이에요</strong>
+                    <span>무난한 만족감이 좋아요</span>
+                  </div>
+                </div>
+                <div class="opt" data-value="3">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>많이 지쳐요</strong>
+                    <span>자극은 줄이고 실패 없는 선택이 좋아요</span>
+                  </div>
+                </div>
+              </div>
+              <div class="helper">
+                스트레스는 안정형/만족형의 비중과 자극 허용도를 바꿔요.
+              </div>
+              <div class="nav">
+                <button class="btn" data-nav="back">이전</button>
+                <button class="btn primary" data-nav="next">다음</button>
+              </div>
+            </div>
+
+            <!-- INPUT 3: Time -->
+            <div class="steps" data-step="time">
+              <p class="q"><b>지금은 언제인가요?</b></p>
+              <div class="options" id="optsTime">
+                <div class="opt" data-value="lunch">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>점심</strong>
+                    <span>활동을 위한 무난한 포만감</span>
+                  </div>
+                </div>
+                <div class="opt" data-value="dinner">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>저녁</strong>
+                    <span>후회가 적고 부담을 조절하는 선택</span>
+                  </div>
+                </div>
+              </div>
+              <div class="helper">
+                시간대는 “무거움 허용”과 “후회 가능성” 조정에 사용돼요.
+              </div>
+              <div class="nav">
+                <button class="btn" data-nav="back">이전</button>
+                <button class="btn primary" id="btnShowResult">
+                  결과 보기
+                </button>
+              </div>
+            </div>
+
+            <!-- RESULT: Candidates -->
+            <div class="steps" data-step="candidates">
+              <div class="hero" style="gap: 6px">
+                <h3 style="font-size: 18px; margin: 0">
+                  지금 상태에 맞는 선택이에요
+                </h3>
+                <p class="muted">셋 중 하나만 고르면 충분해요.</p>
+              </div>
+
+              <div class="sep"></div>
+
+              <div class="candidates" id="candidateList"></div>
+
+              <div class="sep"></div>
+
+              <div class="nav">
+                <button class="btn" data-nav="back">입력 다시</button>
+                <button class="btn primary" id="btnGoFinal">
+                  선택한 메뉴로 결정
+                </button>
+              </div>
+            </div>
+
+            <!-- FINAL -->
+            <div class="steps" data-step="final">
+              <div class="finalBox">
+                <div class="muted">오늘의 선택은</div>
+                <div class="big" id="finalMenu">—</div>
+                <div class="sub" id="finalReason">—</div>
+                <div class="nav">
+                  <button class="btn" id="btnComplete">결정 완료</button>
+                  <button class="btn ghost" id="btnBackToCandidates">
+                    후보로 돌아가기
+                  </button>
+                </div>
+              </div>
+
+              <div class="sep"></div>
+
+              <div class="hero">
+                <h3 style="font-size: 16px; margin: 0">결정 이후 원칙</h3>
+                <p class="muted" style="margin: 0">
+                  결정식탁은 “다시 고르기”보다 “결정 종료”를 우선해요. 그래서
+                  리스트를 펼치지 않고, 대체 메뉴도 1개씩만 교체해요.
+                </p>
+              </div>
+            </div>
+
+            <!-- COMPLETE -->
+            <div class="steps" data-step="complete">
+              <div class="hero" style="gap: 8px">
+                <h3 style="margin: 0">결정은 끝났어요 👍</h3>
+                <p class="muted" style="margin: 0">
+                  이제 고민하지 말고 맛있게 먹기만 하세요.
+                </p>
+
+                <div class="sep"></div>
+
+                <div class="nav">
+                  <button class="btn" id="btnAgain">다시 결정하기</button>
+                  <button class="btn ghost" id="btnSaveHistory">
+                    선택 기록 저장(로컬)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- MYDATA (Modal-ish in same card) -->
+            <div class="steps" data-step="mydata">
+              <div class="hero" style="gap: 8px">
+                <h3 style="margin: 0">마이데이터(제약) 설정</h3>
+                <p class="muted" style="margin: 0">
+                  자주 안 바뀌는 항목은 미리 저장하고, 오늘 상태만 10초
+                  입력해요.
+                </p>
+              </div>
+
+              <div class="sep"></div>
+
+              <p class="q"><b>식습관 / 제약</b></p>
+              <div class="options" id="optsDiet">
+                <div class="opt" data-key="vegetarian" data-value="no">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>채식 아님</strong>
+                    <span>고기/해산물 추천 포함</span>
+                  </div>
+                </div>
+                <div class="opt" data-key="vegetarian" data-value="yes">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>채식(고기 제외)</strong>
+                    <span>고기 기반 메뉴 제외</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sep"></div>
+
+              <p class="q"><b>매운 음식</b></p>
+              <div class="options" id="optsSpicy">
+                <div class="opt" data-key="spicy" data-value="ok">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>가능</strong>
+                    <span>자극 메뉴도 후보에 포함될 수 있어요</span>
+                  </div>
+                </div>
+                <div class="opt" data-key="spicy" data-value="avoid">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>피하고 싶음</strong>
+                    <span>제육/떡볶이 등 자극 메뉴 우선 제외</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sep"></div>
+
+              <p class="q"><b>특별한 날(예외형 카드)</b></p>
+              <div class="options" id="optsOccasion">
+                <div class="opt" data-key="occasion" data-value="false">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>일상</strong>
+                    <span>예외형(랍스터/스테이크) 기본 제외</span>
+                  </div>
+                </div>
+                <div class="opt" data-key="occasion" data-value="true">
+                  <div class="radio"><i></i></div>
+                  <div class="lbl">
+                    <strong>특별한 날</strong>
+                    <span>조건 충족 시 예외형 카드 1개 노출</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="helper">
+                마이데이터는 “추천을 바꾸는 기능”이 아니라 “나오면 안 되는 것”
+                제거(하드 필터) 역할이에요.
+              </div>
+
+              <div class="nav">
+                <button class="btn" data-nav="back">이전</button>
+                <button class="btn primary" id="btnSaveMyData">저장</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sidebar -->
+        <aside class="sideCol">
+          <section class="card">
+            <div class="hd">
+              <div class="title">
+                <h2>현재 상태(입력 요약)</h2>
+                <p>입력 3개 + 마이데이터 제약</p>
+              </div>
+              <span class="tag"><span class="dot"></span>Explainable</span>
+            </div>
+            <div class="bd">
+              <div class="kv" id="stateSummary"></div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="hd">
+              <div class="title">
+                <h2>유형 선택 규칙(요약)</h2>
+                <p>메뉴가 아니라 “이유(유형)”가 단위</p>
+              </div>
+              <span class="tag"><span class="dot"></span>MVP</span>
+            </div>
+            <div class="bd">
+              <div class="codebox" id="ruleBox"></div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="hd">
+              <div class="title">
+                <h2>히스토리(반복 방지)</h2>
+                <p>최근 3회 선택(로컬 저장)</p>
+              </div>
+              <span class="tag"><span class="dot"></span>Rotation</span>
+            </div>
+            <div class="bd">
+              <div class="codebox" id="historyBox"></div>
+              <div class="nav" style="margin-top: 10px">
+                <button class="btn" id="btnClearHistory">히스토리 삭제</button>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">저장했어요</div>
+
+    <script>
+      /*****************************************************************
+       * Decision Table Prototype (Vanilla JS)
+       * - Minimal inputs: Hunger, Stress, Time
+       * - MyData: constraints (vegetarian, spicy, occasion)
+       * - Output: 3 candidates with different Types
+       * - Substitute: rotate within same Type, one-by-one (no list expansion)
+       * - Final: pick 1 and close decision
+       *****************************************************************/
+
+      /*** Types ***/
+      const TYPE = {
+        STABILITY: "안정형",
+        SATISFY: "만족형",
+        CERTAIN: "확실형",
+        SPEED: "속도형",
+        OCCASION: "예외형",
+      };
+
+      /*** Default state ***/
+      const state = {
+        // Inputs
+        hunger: null, // 1..3
+        stress: null, // 1..3
+        time: null, // "lunch" | "dinner"
+
+        // MyData constraints
+        mydata: {
+          vegetarian: "no", // "no" | "yes"
+          spicy: "avoid", // "ok" | "avoid"
+          occasion: "false", // "false" | "true"
+        },
+
+        // Candidate result
+        candidates: [], // {typeKey, typeLabel, menu, reason, poolKey}
+        selectedTypeKey: null, // chosen candidate type
+        final: null, // {menu, reason, typeKey}
+
+        // History (menu picks)
+        history: [], // array of {ts, menu, typeKey}
+      };
+
+      /*** Pools: menu candidates per Type (small but extensible) ***/
+      const POOLS = {
+        [TYPE.STABILITY]: [
+          { name: "칼국수", tags: ["mild", "daily"] },
+          { name: "콩나물국 + 밥", tags: ["mild", "daily"] },
+          { name: "소고기무국 + 밥", tags: ["mild", "daily"] },
+          { name: "순두부찌개 + 밥", tags: ["mild", "daily"] },
+          { name: "미역국 + 밥", tags: ["mild", "daily"] },
+        ],
+        [TYPE.SATISFY]: [
+          { name: "불고기덮밥", tags: ["meat", "mild"] },
+          { name: "소불고기 백반", tags: ["meat", "mild"] },
+          { name: "간장 닭갈비 덮밥", tags: ["meat", "mid"] },
+          { name: "제육덮밥", tags: ["meat", "spicy"] },
+          { name: "오징어볶음 덮밥", tags: ["seafood", "spicy"] },
+        ],
+        [TYPE.CERTAIN]: [
+          { name: "돈까스", tags: ["heavy", "daily"] },
+          { name: "햄버거 세트", tags: ["heavy", "fast"] },
+          { name: "치킨(소량)", tags: ["heavy", "fast"] },
+          { name: "떡볶이 + 튀김", tags: ["heavy", "spicy"] },
+          { name: "피자(조각/개인)", tags: ["heavy", "fast"] },
+        ],
+        [TYPE.SPEED]: [
+          { name: "김밥", tags: ["fast", "daily"] },
+          { name: "컵밥", tags: ["fast"] },
+          { name: "라면", tags: ["fast", "spicy"] },
+          { name: "우동", tags: ["fast", "mild"] },
+        ],
+        [TYPE.OCCASION]: [
+          { name: "랍스터(외식)", tags: ["special", "seafood"] },
+          { name: "스테이크", tags: ["special", "meat"] },
+          { name: "오마카세", tags: ["special", "seafood"] },
+        ],
+      };
+
+      /*** Reasons per Type (fixed, explanation-friendly) ***/
+      const REASON = {
+        [TYPE.STABILITY]: "속을 편안하게 채워줘서 지친 상태에 부담이 없어요.",
+        [TYPE.SATISFY]: "자극 없이 포만감을 주는 실패 확률 낮은 선택이에요.",
+        [TYPE.CERTAIN]: "고민 없이 확실하게 배부를 수 있어요.",
+        [TYPE.SPEED]: "빠르게 먹고 끝낼 수 있어요.",
+        [TYPE.OCCASION]: "오늘은 효율보다 경험을 선택해도 후회가 적어요.",
+      };
+
+      /*** UI helpers ***/
+      const $ = (sel, el = document) => el.querySelector(sel);
+      const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
+
+      const toastEl = $("#toast");
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        setTimeout(() => toastEl.classList.remove("show"), 1300);
+      }
+
+      /*** Persist history & mydata (localStorage) ***/
+      const LS_KEY = "decision_table_v1";
+      function loadLocal() {
+        try {
+          const raw = localStorage.getItem(LS_KEY);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (parsed?.history) state.history = parsed.history;
+          if (parsed?.mydata)
+            state.mydata = { ...state.mydata, ...parsed.mydata };
+        } catch (_) {}
+      }
+      function saveLocal() {
+        localStorage.setItem(
+          LS_KEY,
+          JSON.stringify({ history: state.history, mydata: state.mydata })
+        );
+      }
+
+      /*** Step navigation ***/
+      const stepOrder = [
+        "hero",
+        "hunger",
+        "stress",
+        "time",
+        "candidates",
+        "final",
+        "complete",
+        "mydata", // treated as modal-like step, can be opened from anywhere
+      ];
+
+      let currentStep = "hero";
+      let stepStack = []; // for back navigation, excluding mydata open/close
+
+      function setStep(next, opts = { push: true }) {
+        // Hide all
+        $$(".steps").forEach((s) => s.classList.remove("active"));
+        const target = $(`.steps[data-step="${next}"]`);
+        if (!target) return;
+
+        // Push stack
+        if (opts.push && next !== "mydata") stepStack.push(currentStep);
+
+        currentStep = next;
+        target.classList.add("active");
+        syncHeader();
+        renderSidebar();
+      }
+
+      function backStep() {
+        // If on mydata, return to previous displayed step (no stack effect)
+        if (currentStep === "mydata") {
+          const prev = stepStack.length
+            ? stepStack[stepStack.length - 1]
+            : "hero";
+          setStep(prev, { push: false });
+          return;
+        }
+
+        const prev = stepStack.pop() || "hero";
+        setStep(prev, { push: false });
+      }
+
+      function syncHeader() {
+        const titleEl = $("#stepTitle");
+        const descEl = $("#stepDesc");
+        const bar = $("#progressBar");
+
+        const map = {
+          hero: {
+            t: "01 / 시작",
+            d: "오늘 상태만 입력하면, 이유가 다른 3개만 보여줘요.",
+            p: 10,
+          },
+          hunger: { t: "02 / 배고픔", d: "포만감의 강도를 정해요.", p: 30 },
+          stress: { t: "03 / 컨디션", d: "자극/안정의 방향을 정해요.", p: 55 },
+          time: {
+            t: "04 / 시간대",
+            d: "후회 가능성과 부담을 조정해요.",
+            p: 75,
+          },
+          candidates: {
+            t: "05 / 후보 3개",
+            d: "서로 다른 이유 3개만 제시해요.",
+            p: 90,
+          },
+          final: { t: "06 / 최종 결정", d: "결정은 여기서 끝.", p: 100 },
+          complete: { t: "07 / 완료", d: "이제 고민하지 말고 먹기만.", p: 100 },
+          mydata: {
+            t: "설정 / 마이데이터",
+            d: "자주 안 바뀌는 제약을 저장해요.",
+            p: 20,
+          },
+        };
+
+        const m = map[currentStep] || map.hero;
+        titleEl.textContent = m.t;
+        descEl.textContent = m.d;
+        bar.style.width = m.p + "%";
+      }
+
+      /*** Input selection UI ***/
+      function wireOptions(containerSel, onPick) {
+        const box = $(containerSel);
+        if (!box) return;
+
+        box.addEventListener("click", (e) => {
+          const opt = e.target.closest(".opt");
+          if (!opt) return;
+          $$(".opt", box).forEach((o) => o.classList.remove("selected"));
+          opt.classList.add("selected");
+          onPick(opt);
+          renderSidebar();
+        });
+      }
+
+      wireOptions("#optsHunger", (opt) => {
+        state.hunger = Number(opt.dataset.value);
+      });
+
+      wireOptions("#optsStress", (opt) => {
+        state.stress = Number(opt.dataset.value);
+      });
+
+      wireOptions("#optsTime", (opt) => {
+        state.time = opt.dataset.value;
+      });
+
+      // MyData
+      function wireMyDataOptions(containerSel) {
+        const box = $(containerSel);
+        if (!box) return;
+        box.addEventListener("click", (e) => {
+          const opt = e.target.closest(".opt");
+          if (!opt) return;
+          const key = opt.dataset.key;
+          const value = opt.dataset.value;
+
+          // group select by key
+          const siblings = $$(".opt", box).filter((o) => o.dataset.key === key);
+          siblings.forEach((o) => o.classList.remove("selected"));
+          opt.classList.add("selected");
+
+          state.mydata[key] = value;
+          renderSidebar();
+        });
+      }
+      wireMyDataOptions("#optsDiet");
+      wireMyDataOptions("#optsSpicy");
+      wireMyDataOptions("#optsOccasion");
+
+      /*** Buttons: generic next/back inside steps (input screens) ***/
+      document.addEventListener("click", (e) => {
+        const navBtn = e.target.closest("[data-nav]");
+        if (!navBtn) return;
+        const dir = navBtn.dataset.nav;
+
+        if (dir === "back") {
+          backStep();
+          return;
+        }
+        if (dir === "next") {
+          if (currentStep === "hunger" && !state.hunger)
+            return toast("배고픔을 선택해줘");
+          if (currentStep === "stress" && !state.stress)
+            return toast("컨디션을 선택해줘");
+          if (currentStep === "time" && !state.time)
+            return toast("시간대를 선택해줘");
+
+          if (currentStep === "hunger") return setStep("stress");
+          if (currentStep === "stress") return setStep("time");
+          return;
+        }
+      });
+
+      /*** Header buttons ***/
+      $("#btnStart").addEventListener("click", () => {
+        setStep("hunger");
+      });
+      $("#btnHeroGoInput").addEventListener("click", () => {
+        setStep("hunger");
+      });
+      $("#btnHeroMyData").addEventListener("click", () => {
+        // open mydata from hero (keep stack)
+        setStep("mydata", { push: true });
+      });
+
+      $("#btnOpenMyData").addEventListener("click", () => {
+        setStep("mydata", { push: true });
+      });
+
+      $("#btnReset").addEventListener("click", () => resetAll());
+
+      /*** MyData save ***/
+      $("#btnSaveMyData").addEventListener("click", () => {
+        saveLocal();
+        toast("마이데이터 저장");
+        // return to previous step
+        backStep();
+      });
+
+      /*** Result generation ***/
+      $("#btnShowResult").addEventListener("click", () => {
+        if (!state.hunger || !state.stress || !state.time) {
+          toast("입력을 먼저 완료해줘");
+          return;
+        }
+        generateCandidates();
+        setStep("candidates");
+      });
+
+      /*** Candidate selection & actions ***/
+      function renderCandidates() {
+        const list = $("#candidateList");
+        list.innerHTML = "";
+
+        state.candidates.forEach((c) => {
+          const card = document.createElement("div");
+          card.className = "menuCard";
+          card.dataset.typeKey = c.typeKey;
+
+          const badgeClass = badgeClassFor(c.typeLabel);
+
+          card.innerHTML = `
+            <div class="menuTop">
+              <div class="menuTitle">
+                <div class="type">
+                  <span class="badge ${badgeClass}">${c.typeLabel}</span>
+                  <span class="muted">이유 1줄</span>
+                </div>
+                <h4>${escapeHtml(c.menu)}</h4>
+              </div>
+              <div class="menuActions">
+                <button class="btn" data-action="substitute">다른 선택 보기</button>
+                <button class="btn primary" data-action="pick">이 메뉴로</button>
+              </div>
+            </div>
+            <p class="reason">${escapeHtml(c.reason)}</p>
+          `;
+
+          list.appendChild(card);
+        });
+
+        // Attach handlers
+        list.onclick = (e) => {
+          const btn = e.target.closest("button");
+          const card = e.target.closest(".menuCard");
+          if (!btn || !card) return;
+          const typeKey = card.dataset.typeKey;
+          const action = btn.dataset.action;
+
+          if (action === "substitute") {
+            substituteWithinType(typeKey);
+            renderCandidates();
+            toast("대체 메뉴로 교체");
+            return;
+          }
+          if (action === "pick") {
+            const chosen = state.candidates.find((x) => x.typeKey === typeKey);
+            if (!chosen) return;
+            state.selectedTypeKey = typeKey;
+            state.final = {
+              menu: chosen.menu,
+              reason: chosen.reason,
+              typeKey: chosen.typeKey,
+              typeLabel: chosen.typeLabel,
+            };
+            // go final step
+            $("#finalMenu").textContent = chosen.menu;
+            $("#finalReason").textContent = chosen.reason;
+            setStep("final");
+            return;
+          }
+        };
+      }
+
+      $("#btnGoFinal").addEventListener("click", () => {
+        if (!state.final) {
+          toast("후보에서 ‘이 메뉴로’를 눌러 선택해줘");
+          return;
+        }
+        setStep("final");
+      });
+
+      $("#btnBackToCandidates").addEventListener("click", () => {
+        setStep("candidates", { push: false });
+      });
+
+      $("#btnComplete").addEventListener("click", () => {
+        if (!state.final) return;
+
+        // Save to in-memory history
+        state.history.unshift({
+          ts: Date.now(),
+          menu: state.final.menu,
+          typeKey: state.final.typeKey,
+          typeLabel: state.final.typeLabel,
+        });
+        state.history = state.history.slice(0, 3);
+        saveLocal();
+        renderSidebar();
+
+        setStep("complete");
+      });
+
+      $("#btnAgain").addEventListener("click", () => {
+        // start new decision but keep mydata + history
+        state.hunger = null;
+        state.stress = null;
+        state.time = null;
+        state.candidates = [];
+        state.selectedTypeKey = null;
+        state.final = null;
+
+        clearSelections();
+        setStep("hunger");
+      });
+
+      $("#btnSaveHistory").addEventListener("click", () => {
+        saveLocal();
+        toast("기록 저장");
+      });
+
+      $("#btnClearHistory").addEventListener("click", () => {
+        state.history = [];
+        saveLocal();
+        renderSidebar();
+        toast("히스토리 삭제");
+      });
+
+      /*** Reset all (including mydata) ***/
+      function resetAll() {
+        state.hunger = null;
+        state.stress = null;
+        state.time = null;
+        state.candidates = [];
+        state.selectedTypeKey = null;
+        state.final = null;
+        state.mydata = { vegetarian: "no", spicy: "avoid", occasion: "false" };
+        state.history = [];
+        localStorage.removeItem(LS_KEY);
+
+        clearSelections();
+        syncMyDataSelections();
+        renderSidebar();
+        setStep("hero", { push: false });
+        stepStack = [];
+        toast("초기화 완료");
+      }
+
+      function clearSelections() {
+        ["#optsHunger", "#optsStress", "#optsTime"].forEach((sel) => {
+          const box = $(sel);
+          if (!box) return;
+          $$(".opt", box).forEach((o) => o.classList.remove("selected"));
+        });
+      }
+
+      /*** Candidate algorithm (more concrete, explainable) ***/
+      function generateCandidates() {
+        // 1) choose 3 different types based on inputs + mydata
+        const H = state.hunger;
+        const S = state.stress;
+        const T = state.time;
+
+        // Active type candidates (priority based)
+        let types = [];
+
+        // Base preference: Always try to include Stability + Satisfy + Certain
+        // But apply constraints and input gating
+        // - Stability: H>=2 and S>=2
+        if (H >= 2 && S >= 2) types.push(TYPE.STABILITY);
+
+        // - Satisfy: H>=2 and S>=2 and spicy not strongly avoided OR allow mild satisfy only
+        types.push(TYPE.SATISFY); // allow satisfy generally; menu filter handles spicy constraint
+
+        // - Certain: H==3 (very hungry), but reduce if dinner + stress high (burden)
+        if (H === 3) types.push(TYPE.CERTAIN);
+
+        // - Speed: optional (not asking time shortage input in MVP), so only when lunch + stress low
+        if (T === "lunch" && S <= 2) types.push(TYPE.SPEED);
+
+        // - Occasion: only when mydata occasion true + stress low + dinner
+        if (state.mydata.occasion === "true" && S === 1 && T === "dinner") {
+          types.unshift(TYPE.OCCASION); // insert early, but only 1 slot
+        }
+
+        // 2) Deduplicate while preserving order
+        types = [...new Set(types)];
+
+        // 3) Force pick 3 distinct types with fallback logic
+        const pickedTypes = [];
+        for (const t of types) {
+          if (pickedTypes.length >= 3) break;
+          if (!pickedTypes.includes(t)) pickedTypes.push(t);
+        }
+        // fallback fill
+        const fallbackOrder = [
+          TYPE.STABILITY,
+          TYPE.SATISFY,
+          TYPE.CERTAIN,
+          TYPE.SPEED,
+          TYPE.OCCASION,
+        ];
+        for (const t of fallbackOrder) {
+          if (pickedTypes.length >= 3) break;
+          if (!pickedTypes.includes(t)) pickedTypes.push(t);
+        }
+
+        // 4) For each picked type, choose a menu from pool with constraints + history avoidance
+        state.candidates = pickedTypes.map((typeLabel) => {
+          const menu = pickMenuFromPool(typeLabel);
+          return {
+            typeKey: typeKeyFromLabel(typeLabel),
+            typeLabel,
+            menu: menu.name,
+            reason: reasonFor(typeLabel, menu),
+            poolKey: typeLabel,
+            // store index to allow substitute rotation
+            cursor: menu.cursor,
+          };
+        });
+
+        // 5) Reset selected final
+        state.final = null;
+        state.selectedTypeKey = null;
+
+        renderCandidates();
+        renderSidebar();
+      }
+
+      function reasonFor(typeLabel, menuObj) {
+        // Slightly personalize reasons to feel "decision-based"
+        if (typeLabel === TYPE.SATISFY) {
+          // If spicy avoided, emphasize mild
+          if (state.mydata.spicy === "avoid") {
+            return "자극은 줄이면서도 포만감을 주는 만족형 선택이에요.";
+          }
+          return REASON[typeLabel];
+        }
+        if (typeLabel === TYPE.CERTAIN) {
+          if (state.time === "dinner" && state.stress === 3) {
+            return "확실하게 배부르되, 과부담이 느껴지면 다른 카드로 바꿔도 돼요.";
+          }
+          return REASON[typeLabel];
+        }
+        return REASON[typeLabel];
+      }
+
+      function pickMenuFromPool(typeLabel) {
+        // Apply hard constraints: vegetarian removes meat-heavy menus from satisfy/certain/occasion pools
+        const constraints = state.mydata;
+
+        let pool = (POOLS[typeLabel] || []).slice();
+
+        // Vegetarian filter
+        if (constraints.vegetarian === "yes") {
+          pool = pool.filter((m) => !m.tags.includes("meat"));
+        }
+
+        // Spicy avoid filter (avoid spicy-tag menus)
+        if (constraints.spicy === "avoid") {
+          pool = pool.filter((m) => !m.tags.includes("spicy"));
+        }
+
+        // If pool becomes empty, fallback to mild daily foods (stability)
+        if (!pool.length) {
+          pool = (POOLS[TYPE.STABILITY] || []).slice();
+        }
+
+        // History avoidance: prefer menu not used recently
+        const used = new Set(state.history.map((h) => h.menu));
+        const fresh = pool.filter((m) => !used.has(m.name));
+        const chosenPool = fresh.length ? fresh : pool;
+
+        // Rotate by simple cursor stored per type in localStorage? We'll compute cursor from time
+        const cursor = Date.now() % chosenPool.length;
+        const picked = chosenPool[cursor];
+        return { ...picked, cursor };
+      }
+
+      function substituteWithinType(typeKey) {
+        const idx = state.candidates.findIndex((c) => c.typeKey === typeKey);
+        if (idx < 0) return;
+        const c = state.candidates[idx];
+        const typeLabel = c.typeLabel;
+
+        // rebuild pool with constraints
+        let pool = (POOLS[typeLabel] || []).slice();
+        if (state.mydata.vegetarian === "yes") {
+          pool = pool.filter((m) => !m.tags.includes("meat"));
+        }
+        if (state.mydata.spicy === "avoid") {
+          pool = pool.filter((m) => !m.tags.includes("spicy"));
+        }
+        if (!pool.length) pool = (POOLS[TYPE.STABILITY] || []).slice();
+
+        // rotate to next
+        const curIndex = pool.findIndex((m) => m.name === c.menu);
+        const nextIndex = curIndex >= 0 ? (curIndex + 1) % pool.length : 0;
+        const nextMenu = pool[nextIndex];
+
+        state.candidates[idx] = {
+          ...c,
+          menu: nextMenu.name,
+          // reason text must remain consistent per rule (same type)
+          reason: reasonFor(typeLabel, nextMenu),
+        };
+
+        // If final already selected from this type, update final to keep consistency
+        if (state.final && state.final.typeKey === typeKey) {
+          state.final.menu = nextMenu.name;
+          state.final.reason = state.candidates[idx].reason;
+          $("#finalMenu").textContent = state.final.menu;
+          $("#finalReason").textContent = state.final.reason;
+        }
+      }
+
+      function typeKeyFromLabel(label) {
+        // stable internal keys
+        const map = {
+          [TYPE.STABILITY]: "STABILITY",
+          [TYPE.SATISFY]: "SATISFY",
+          [TYPE.CERTAIN]: "CERTAIN",
+          [TYPE.SPEED]: "SPEED",
+          [TYPE.OCCASION]: "OCCASION",
+        };
+        return map[label] || label;
+      }
+
+      function badgeClassFor(typeLabel) {
+        if (typeLabel === TYPE.STABILITY) return "stability";
+        if (typeLabel === TYPE.SATISFY) return "satisfy";
+        if (typeLabel === TYPE.CERTAIN) return "certain";
+        if (typeLabel === TYPE.SPEED) return "speed";
+        if (typeLabel === TYPE.OCCASION) return "occasion";
+        return "";
+      }
+
+      /*** Sidebar render ***/
+      function renderSidebar() {
+        // Summary
+        const sum = $("#stateSummary");
+        sum.innerHTML = "";
+
+        const hungerText =
+          state.hunger === 1
+            ? "조금"
+            : state.hunger === 2
+            ? "보통"
+            : state.hunger === 3
+            ? "많이"
+            : "—";
+        const stressText =
+          state.stress === 1
+            ? "여유"
+            : state.stress === 2
+            ? "보통"
+            : state.stress === 3
+            ? "지침"
+            : "—";
+        const timeText =
+          state.time === "lunch"
+            ? "점심"
+            : state.time === "dinner"
+            ? "저녁"
+            : "—";
+
+        const rows = [
+          ["배고픔", hungerText],
+          ["컨디션", stressText],
+          ["시간대", timeText],
+          [
+            "채식",
+            state.mydata.vegetarian === "yes" ? "고기 제외" : "제약 없음",
+          ],
+          ["매운맛", state.mydata.spicy === "avoid" ? "피함" : "가능"],
+          ["특별한 날", state.mydata.occasion === "true" ? "ON" : "OFF"],
+        ];
+
+        rows.forEach(([k, v]) => {
+          const div = document.createElement("div");
+          div.className = "kvRow";
+          div.innerHTML = `<b>${escapeHtml(k)}</b><span>${escapeHtml(
+            v
+          )}</span>`;
+          sum.appendChild(div);
+        });
+
+        // RuleBox (short)
+        $("#ruleBox").textContent = [
+          "유형 선택 기준 (MVP)",
+          "",
+
+          "- 안정형:",
+          "  배고픔이 보통 수준이고 스트레스가 있는 경우.",
+          "  실패 가능성이 낮은 무난한 선택을 우선합니다.",
+          "",
+          "- 만족형:",
+          "  배고픔과 스트레스가 모두 높은 경우.",
+          "  위로와 만족감을 주는 선택을 제시합니다.",
+          "",
+          "- 확실형:",
+          "  배고픔이 매우 높은 경우.",
+          "  빠른 포만감과 식사 완료 속도를 기준으로 결정합니다.",
+          "",
+          "- 특별한 날:",
+          "  특별한 날로 설정되어 있고 저녁 식사이며 시간적 여유가 있을 때.",
+          "  선택을 넓히지 않고 하나의 메뉴만 제안합니다.",
+          "",
+          "대체 메뉴 제공 방식",
+          "- 전체 리스트를 다시 펼치지 않습니다.",
+          "- 동일한 유형 내에서만 한 개씩 교체합니다.",
+          "",
+          "결정 종료",
+          "- 후보 3개 중 하나를 선택하면 결정은 종료됩니다.",
+        ].join("\n");
+
+        // History
+        const hb = $("#historyBox");
+        if (!state.history.length) {
+          hb.textContent = "기록 없음";
+        } else {
+          hb.textContent = state.history
+            .map((h, i) => {
+              const dt = new Date(h.ts);
+              const mm = String(dt.getMonth() + 1).padStart(2, "0");
+              const dd = String(dt.getDate()).padStart(2, "0");
+              const hh = String(dt.getHours()).padStart(2, "0");
+              const mi = String(dt.getMinutes()).padStart(2, "0");
+              return `${i + 1}. [${mm}-${dd} ${hh}:${mi}] ${h.menu} (${
+                h.typeLabel
+              })`;
+            })
+            .join("\n");
+        }
+
+        // If on candidates, ensure list is rendered
+        if (currentStep === "candidates") renderCandidates();
+      }
+
+      /*** MyData selections sync ***/
+      function syncMyDataSelections() {
+        // for each mydata group, set selected class
+        const applyGroup = (containerSel, key) => {
+          const box = $(containerSel);
+          if (!box) return;
+          $$(".opt", box).forEach((o) => o.classList.remove("selected"));
+          const target = $(
+            `.opt[data-key="${key}"][data-value="${state.mydata[key]}"]`,
+            box
+          );
+          if (target) target.classList.add("selected");
+        };
+        applyGroup("#optsDiet", "vegetarian");
+        applyGroup("#optsSpicy", "spicy");
+        applyGroup("#optsOccasion", "occasion");
+      }
+
+      /*** Small helpers ***/
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      /*** Init ***/
+      loadLocal();
+      syncMyDataSelections();
+      renderSidebar();
+      syncHeader();
+
+      // Wire topbar start
+      $("#btnStart").click();
+
+      // Actually don't auto-start; keep hero visible
+      // Undo the click above; show hero
+      setStep("hero", { push: false });
+      stepStack = [];
+
+      // Ensure mydata selections reflect loaded state
+      syncMyDataSelections();
+
+      // Also support "start" from topbar without leaving hero stack weirdness
+      $("#btnStart").addEventListener("click", () => {
+        setStep("hunger");
+      });
+    </script>
+  </body>
+</html>
