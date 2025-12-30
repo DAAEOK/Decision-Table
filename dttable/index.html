@@ -82,7 +82,7 @@
       }
       .section-subtitle {
         color: var(--muted);
-        max-width: 820px;
+        /* max-width: 820px; */
         font-size: 16px;
       }
 
@@ -788,6 +788,12 @@
       }
 
       /* ===== Gallery placeholders ===== */
+      .gallery .shot img {
+        width: 100%;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+      }
       .gallery {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1083,7 +1089,7 @@
           <p class="section-subtitle">
             결정식탁은 음식 추천 서비스가 아니라, 사용자가 매번 겪는
             <strong>‘선택 과정의 피로’를 줄이는 구조</strong>를 설계한 PM 케이스
-            스터디다. 목표는 기능을 많이 만드는 것이 아니라,
+            스터디다. 목표는 기능을 많이 만드는 것이 아니라,<br />
             <strong
               >결정이 일어나는 순간을 얼마나 단순하게 만들 수 있는지</strong
             >를 검증하는 것이었다.
@@ -1185,8 +1191,8 @@
           <h2 class="section-title">솔루션 전략</h2>
           <p class="section-subtitle">
             목표는 추천을 “잘” 하는 게 아니라,
-            <strong>결정 과정을 짧고 단단하게 만드는 것</strong>. 상태 입력 →
-            3개 추천 → 이유 제공으로 “선택”만 남겼다.
+            <strong>결정 과정을 짧고 이유 가능하게 만드는 것</strong>. 상태 입력
+            → 3개 추천 → 이유 제공으로 “선택”만 남겼다.
           </p>
         </div>
 
@@ -1270,8 +1276,9 @@
           <div class="section-kicker">MVP</div>
           <h2 class="section-title">MVP 범위 & 의사결정 구조</h2>
           <p class="section-subtitle">
-            “기능 최소화”가 아니라
-            <strong>‘검증 질문에만 필요한 것만 남긴 설계’</strong>입니다.
+            MVP는 기능을 최소화하는 것이 아니라,
+            <strong>검증하고자 한 의사결정 질문에 필요한 요소</strong>만 남겨
+            설계했습니다.
           </p>
         </div>
 
@@ -1514,9 +1521,9 @@
         <div class="callout reveal">
           <p>
             <strong>포트폴리오 포인트</strong><br />
-            “이커머스/추천”처럼 정답이 없는 영역에서도, PM은
-            <strong>결정 구조(입력→제약→후보→확정)</strong>를 설계해 사용자의
-            비용을 줄일 수 있다.
+            이 설계는 정답이 없는 선택 상황에서도
+            <strong>입력 → 제약 → 후보 → 확정</strong>의 결정 구조를 통해
+            사용자의 판단 부담을 줄이는 것을 목표로 한다.
           </p>
         </div>
       </div>
@@ -1709,24 +1716,28 @@
 
         <div class="gallery">
           <div class="shot reveal">
+            <img src="./images/onboarding.jpg" />
             <strong>1. 온보딩</strong><br /><br />
             제약 조건(알레르기/채식)<br />
             최소 입력으로 수집<br />
             <span style="color: var(--muted)">→ 선택 실패 방지</span>
           </div>
           <div class="shot reveal">
+            <img src="./images/condition.jpg" />
             <strong>2. 상태 체크</strong><br /><br />
             배고픔/스트레스/계획<br />
             3문항 버튼 선택<br />
             <span style="color: var(--muted)">→ 입력 10초</span>
           </div>
           <div class="shot reveal">
+            <img src="./images/result2.jpg" />
             <strong>3. 추천 결과</strong><br /><br />
-            3개만 노출<br />
-            이유 1줄 제공<br />
+            결과 출력<br />
+            이유 제공<br />
             <span style="color: var(--muted)">→ 납득/신뢰</span>
           </div>
           <div class="shot reveal">
+            <img src="./images/map.jpg" />
             <strong>4. 액션</strong><br /><br />
             배달앱/지도 연동<br />
             바로 실행<br />
@@ -1762,22 +1773,23 @@
 
         <div class="grid-2">
           <div class="card reveal">
-            <h3>현실적 제약</h3>
+            <h3>Design Trade-offs</h3>
             <p>
-              • 실사용자 테스트 없음(관찰 기반 가설)<br />
-              • 음식점 DB/API 연동 미구현<br />
+              • 실사용자 테스트 대신 관찰 기반 가설로 1차 검증<br />
+              • 음식점 DB/API 연동은 범위에서 제외<br />
               • 룰 기반 추천의 정확도/다양성 한계<br />
-              • 개인화는 로그 축적 이후 단계
+              • 개인화는 로그 축적 이후 단계로 분리
             </p>
           </div>
 
           <div class="card reveal">
-            <h3>핵심 학습</h3>
+            <h3>Key Insights</h3>
             <p>
               • 문제를 재정의하면 KPI가 바뀐다(정확도 → 결정 비용)<br />
               • MVP는 “기능 수”가 아니라 “검증 질문”이 핵심이다<br />
               • 추천 시스템의 신뢰는 ‘이유’에서 시작된다<br />
-              • PM은 “무엇을 안 만들지”를 결정한다
+              • PM은 “무엇을 안 만들지”를 결정한다<br />
+              • 이 경험을 G마켓의 '선택 과다' 문제 해결에 적용하고 싶다
             </p>
           </div>
         </div>
@@ -1789,7 +1801,7 @@
             ② 최근 7일 제외 + 다양성 룰 고도화(‘유형 다양성’까지 관리)<br />
             ③ 추천 이유를 상황 맞춤 문장으로 고도화(LLM)하되, 근거(규칙)를 함께
             노출<br />
-            ④ B2B(구내식당/단체급식)로 의사결정 구조 확장 검토
+            <!-- ④ B2B(구내식당/단체급식)로 의사결정 구조 확장 검토 -->
           </p>
         </div>
 
@@ -1807,8 +1819,8 @@
         >
           <p>
             <strong>이 프로젝트가 내게 준 것</strong><br />
-            PM은 코드를 짜는 사람이 아니라,
-            <strong>문제를 ‘검증 가능한 질문’으로 바꾸고</strong>
+            PM은 ‘기능을 만드는 사람’이 아니라
+            <strong>문제를 검증 가능한 질문으로 바꾸고</strong>
             그 질문에 답할 수 있는 구조를 만드는 사람이라는 걸 체감했다.
           </p>
         </div>
@@ -1831,9 +1843,9 @@
             </div>
             <div style="margin-top: 6px; font-size: 13px">
               Product Manager / Service Planner<br />
-              <span style="color: var(--muted-2)"
+              <!-- <span style="color: var(--muted-2)"
                 >개인화 · 데이터 기반 의사결정 · 서비스 기획</span
-              >
+              > -->
             </div>
             <div
               style="margin-top: 10px; font-size: 12px; color: var(--muted-2)"
@@ -1843,11 +1855,21 @@
           </div>
 
           <div class="links">
-            <a class="link" href="mailto:your.email@example.com">Email</a>
-            <a class="link" href="#" target="_blank" rel="noreferrer"
-              >LinkedIn</a
+            <a class="link" href="mailto:dhrruddid5@naver.com">Email</a>
+            <a
+              class="link"
+              href="https://www.notion.so/pm-2bbc012d2817802b9dafe1c046f27c9f?source=copy_link"
+              target="_blank"
+              rel="noreferrer"
+              >Notion</a
             >
-            <a class="link" href="#" target="_blank" rel="noreferrer">Resume</a>
+            <a
+              class="link"
+              href="https://drive.google.com/file/d/1_J4df-PCzSUpVXnKGN5o-6f71wAAY4zD/view?usp=sharing"
+              target="_blank"
+              rel="noreferrer"
+              >Resume</a
+            >
           </div>
         </div>
       </div>
